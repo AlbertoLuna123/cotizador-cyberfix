@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cotización</title>
+    <style>
+        /* CSS específico para impresión PDF */
+        @page {
+            size: A4;
+            margin: 15mm 15mm;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #333;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            width: 100%;
+            border-bottom: 2px solid #004085;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header table {
+            width: 100%;
+        }
+        .company-info h1 {
+            color: #004085;
+            margin: 0 0 5px 0;
+            font-size: 24px;
+        }
+        .info-section {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .info-section td {
+            vertical-align: top;
+            width: 50%;
+        }
+        .box {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .box h3 {
+            margin-top: 0;
+            color: #004085;
+            font-size: 14px;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 5px;
+        }
+        .table-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .table-items th {
+            background-color: #004085;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            font-size: 12px;
+        }
+        .table-items td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: center;
+        }
+        .table-items td:nth-child(3) {
+            text-align: left; /* La descripción va alineada a la izquierda */
+        }
+        .totales {
+            width: 40%;
+            float: right;
+            border-collapse: collapse;
+        }
+        .totales td {
+            padding: 2px 5px; /* Reducimos el relleno vertical */
+            border-bottom: 1px solid #dee2e6;
+            line-height: 1.1; /* Acorta el salto de línea entre textos */
+        }
+        .totales .bold {
+            font-weight: bold;
+            text-align: right;
+        }
+        .totales .right {
+            text-align: right;
+        }
+        .totales .total-final {
+            font-size: 16px;
+            color: #004085;
+            font-weight: bold;
+        }
+        .clausulas {
+            clear: both;
+            margin-top: 40px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+            font-size: 11px;
+            color: #555;
+        }
+
+        .footer-creditos {
+            text-align: center;
+            font-size: 10px;
+            color: #999;
+            margin-top: 50px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Encabezado de la Empresa -->
+    <div class="header">
+        <table>
+            <tr>
+                <!-- Columna 1: Logotipo (Solo se muestra si el usuario subió uno) -->
+                {% if logo_base64 %}
+                <td style="width: 25%; vertical-align: top; padding-right: 15px;">
+                    <!-- Usamos el atributo width directo en HTML para que xhtml2pdf lo respete -->
+                    <img src="{{ logo_base64 }}" width="160">
+                </td>
+                {% endif %}
+
+                <!-- Columna 2: Datos de la Empresa -->
+                <td class="company-info" style="vertical-align: top;">
+                    <!-- Como en tu caso el logo ya dice "CyberFix Monterrey", esto asegura que el texto se vea bien alineado al lado -->
+                    <h1>{{ empresa.nombre_comercial }}</h1>
+                    {% if empresa.razon_social %}<strong>Razón Social:</strong> {{ empresa.razon_social }}<br>{% endif %}
+                    {% if empresa.rfc %}<strong>RFC:</strong> {{ empresa.rfc }}<br>{% endif %}
+                    {% if empresa.telefono %}<strong>Teléfono:</strong> {{ empresa.telefono }}<br>{% endif %}
+                    {% if empresa.correo %}<strong>Email:</strong> {{ empresa.correo }}{% endif %}
+                </td>
+
+                <!-- Columna 3: Folio de la Cotización -->
+                <td style="width: 30%; text-align: right; vertical-align: top;">
+                    <h2 style="color: #6c757d; margin:0; font-size: 18px;">COTIZACIÓN</h2>
+                    <h3 style="margin:5px 0 0 0; color: #333;">{{ cliente.numero_cotizacion }}</h3>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Datos del Cliente -->
+    <table class="info-section">
+        <tr>
+            <td style="padding-right: 10px;">
+                <div class="box">
+                    <h3>Preparado para:</h3>
+                    <strong>{{ cliente.nombre }}</strong><br>
+                    {% if cliente.atencion %}<strong>Atención a:</strong> {{ cliente.atencion }}<br>{% endif %}
+                    {% if cliente.rfc %}<strong>RFC:</strong> {{ cliente.rfc }}<br>{% endif %}
+                    {% if cliente.direccion %}<strong>Dirección:</strong> {{ cliente.direccion }}<br>{% endif %}
+                    {% if cliente.correo %}<strong>Email:</strong> {{ cliente.correo }}<br>{% endif %}
+                    {% if cliente.telefono1 %}<strong>Teléfono:</strong> {{ cliente.telefono1 }}{% endif %}
+                </div>
+            </td>
+            <td style="padding-left: 10px;">
+                <div class="box">
+                    <h3>Detalles del Servicio:</h3>
+                    {% if cliente.entrega %}<strong>Lugar de entrega/servicio:</strong> {{ cliente.entrega }}<br>{% endif %}
+                    <strong>Fecha:</strong> <!-- Aquí después podemos agregar la fecha del día automáticamente -->
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Tabla de Artículos -->
+    <table class="table-items">
+        <thead>
+            <tr>
+                <th style="width: 5%;">No.</th>
+                <th style="width: 15%;">Código/SKU</th>
+                <th style="width: 35%;">Descripción</th>
+                <th style="width: 15%;">Precio Unit.</th>
+                <th style="width: 10%;">Cant.</th>
+                <th style="width: 20%; text-align: right; padding-right: 10px;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for articulo in articulos %}
+            <tr>
+                <td>{{ articulo.no_item }}</td>
+                <td>{{ articulo.item }}</td>
+                <td>{{ articulo.descripcion }}</td>
+                <td>${{ articulo.costo_unitario }}</td>
+                <td>{{ articulo.cantidad }}</td>
+                <td style="text-align: right; padding-right: 10px;">${{ articulo.costo_final }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Totales -->
+    <table class="totales">
+        <tr>
+            <td class="bold">Subtotal:</td>
+            <td class="right">${{ totales.subtotal }}</td>
+        </tr>
+        <tr>
+            <td class="bold">IVA (16%):</td>
+            <td class="right">${{ totales.iva }}</td>
+        </tr>
+        {% if totales.aplicar_isr == 'si' %}
+        <tr>
+            <td class="bold" style="color: red;">Retención ISR (1.25%):</td>
+            <td class="right" style="color: red;">-${{ totales.retencion_isr }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td class="bold total-final">TOTAL:</td>
+            <td class="right total-final">${{ totales.total }}</td>
+        </tr>
+    </table>
+
+    <!-- Cláusulas -->
+    {% if clausulas %}
+    <div class="clausulas">
+        <strong>Términos y Condiciones:</strong><br>
+        <!-- pre-wrap respeta los saltos de línea que el usuario dio en el textarea -->
+        <div style="white-space: pre-wrap;">{{ clausulas }}</div>
+    </div>
+    {% endif %}
+
+    <div class="footer-creditos">
+        Generado mediante el software de CyberFix Monterrey
+    </div>
+</body>
+</html>

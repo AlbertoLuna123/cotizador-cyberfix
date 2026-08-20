@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador Online</title>
+    <!-- Bootstrap para el diseño -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5 mb-5">
+        <h2 class="text-center mb-4">Generador de Cotizaciones</h2>
+        
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form action="/generar" method="POST" enctype="multipart/form-data" target="_blank">
+                    
+                    <!-- Sección 1: Datos de la Empresa -->
+                    <h4 class="mb-3 text-primary border-bottom pb-2">1. Datos de la Empresa</h4>
+                    
+                    <!-- Agregué el logotipo aquí porque lo mencionaste en tu idea original -->
+                    <div class="row mb-3">
+                        <div class="col-md-12 mb-3">
+                            <label for="logotipo" class="form-label fw-bold">Logotipo de la Empresa (JPG, PNG)</label>
+                            <input type="file" class="form-control" id="logotipo" name="logotipo" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Nombre comercial</label>
+                            <input type="text" class="form-control" name="empresa_nombre_comercial" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Razón social</label>
+                            <input type="text" class="form-control" name="empresa_razon_social">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">RFC</label>
+                            <input type="text" class="form-control" name="empresa_rfc">
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">CP</label>
+                            <input type="text" class="form-control" name="empresa_cp">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" name="empresa_telefono">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Correo electrónico</label>
+                            <input type="email" class="form-control" name="empresa_correo">
+                        </div>
+                    </div>
+
+                    <!-- Sección 2: Datos del Cliente -->
+                    <h4 class="mb-3 text-primary border-bottom pb-2">2. Datos del Cliente</h4>
+                    
+                    <div class="row mb-3">
+                        <!-- El número de cotización lo puse al principio de esta sección por visibilidad -->
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label fw-bold text-success">Número de cotización</label>
+                            <input type="text" class="form-control border-success" name="numero_cotizacion" placeholder="Ej. COT-001" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Nombre o razón social</label>
+                            <input type="text" class="form-control" name="cliente_nombre" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">En atención a:</label>
+                            <input type="text" class="form-control" name="cliente_atencion" placeholder="Nombre de contacto">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">RFC</label>
+                            <input type="text" class="form-control" name="cliente_rfc">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Correo electrónico</label>
+                            <input type="email" class="form-control" name="cliente_correo">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Dirección fiscal</label>
+                            <input type="text" class="form-control" name="cliente_direccion">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Teléfono 1</label>
+                            <input type="tel" class="form-control" name="cliente_telefono1">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Teléfono 2</label>
+                            <input type="tel" class="form-control" name="cliente_telefono2">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Lugar de entrega</label>
+                            <input type="text" class="form-control" name="cliente_entrega">
+                        </div>
+                    </div>
+
+                    <!-- Sección 3: Artículos -->
+                                <!-- Sección 3: Artículos -->
+                    <h4 class="mb-3 text-primary border-bottom pb-2">3. Artículos a Cotizar</h4>
+                    <div class="table-responsive mb-3">
+                        <table class="table table-bordered align-middle text-center" id="tablaArticulos">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 8%;">No. Item</th>
+                                    <th style="width: 15%;">Item (Código/SKU)</th>
+                                    <th style="width: 30%;">Descripción</th>
+                                    <th style="width: 15%;">Costo Unit. ($)</th>
+                                    <th style="width: 10%;">Cantidad</th>
+                                    <th style="width: 15%;">Costo Final ($)</th>
+                                    <th style="width: 7%;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoArticulos">
+                                <tr>
+                                    <td><input type="text" class="form-control text-center no-item bg-light" name="no_item[]" value="1" readonly></td>
+                                    <td><input type="text" class="form-control" name="items[]" required></td>
+                                    <td><input type="text" class="form-control" name="descripciones[]" required></td>
+                                    <td><input type="number" step="0.01" class="form-control costo-unitario" name="costos_unitarios[]" required></td>
+                                    <td><input type="number" class="form-control cantidad" name="cantidades[]" min="1" value="1" required></td>
+                                    <td><input type="number" step="0.01" class="form-control costo-final bg-light" name="costos_finales[]" readonly></td>
+                                    <td><button type="button" class="btn btn-danger btn-sm btn-eliminar" disabled>X</button></td>
+                                </tr>
+                            </tbody>
+                            <!-- Pie de tabla para los totales -->
+                            <tfoot class="table-group-divider">
+                                <tr>
+                                    <td colspan="5" class="text-end fw-bold">Subtotal:</td>
+                                    <td><input type="text" class="form-control bg-light text-end" id="subtotal" name="subtotal" value="0.00" readonly></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5" class="text-end fw-bold">IVA (16%):</td>
+                                    <td><input type="text" class="form-control bg-light text-end" id="iva" name="iva" value="0.00" readonly></td>
+                                    <td></td>
+                                </tr>
+                                <!-- Esta fila se mostrará u ocultará dependiendo del checkbox -->
+                                <tr id="filaISR" style="display: none;">
+                                    <td colspan="5" class="text-end fw-bold text-danger">Retención ISR (1.25%):</td>
+                                    <td><input type="text" class="form-control bg-light text-end text-danger" id="retencion_isr" name="retencion_isr" value="0.00" readonly></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5" class="text-end fw-bold fs-5">TOTAL:</td>
+                                    <td><input type="text" class="form-control bg-light text-end fw-bold fs-5" id="total" name="total" value="0.00" readonly></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        
+                        <!-- Controles debajo de la tabla -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <button type="button" class="btn btn-outline-secondary" id="btnAgregarArticulo">+ Agregar otro artículo</button>
+                            
+                            <div class="form-check form-switch fs-5">
+                                <input class="form-check-input" type="checkbox" id="aplicarISR" name="aplicar_isr" value="si">
+                                <label class="form-check-label fw-bold" for="aplicarISR">Aplicar Retención de ISR (1.25%)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 4: Cláusulas -->
+                    <h4 class="mb-3 text-primary border-bottom pb-2">4. Términos y Cláusulas</h4>
+                    <div class="mb-4">
+                        <textarea class="form-control" name="clausulas" rows="3" placeholder="Vigencia, tiempos de entrega, condiciones de pago..."></textarea>
+                    </div>
+
+                    <!-- Botón Generar -->
+                    <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">Generar PDF</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cuerpoTabla = document.getElementById('cuerpoArticulos');
+            const btnAgregar = document.getElementById('btnAgregarArticulo');
+            const checkboxISR = document.getElementById('aplicarISR');
+            const filaISR = document.getElementById('filaISR');
+
+            // 1. Función para calcular todos los totales (Subtotal, IVA, ISR, Total)
+            function calcularTotales() {
+                let subtotal = 0;
+                
+                // Sumar todos los costos finales
+                document.querySelectorAll('.costo-final').forEach(input => {
+                    const valor = parseFloat(input.value) || 0;
+                    subtotal += valor;
+                });
+
+                const iva = subtotal * 0.16;
+                let isr = 0;
+
+                // Verificar si la retención de ISR está activa
+                if (checkboxISR.checked) {
+                    isr = subtotal * 0.0125;
+                    filaISR.style.display = 'table-row'; // Muestra la fila del ISR
+                } else {
+                    filaISR.style.display = 'none'; // Oculta la fila del ISR
+                }
+
+                // Calcular el total con la fórmula requerida
+                const total = subtotal + iva - isr;
+
+                // Reflejar los resultados en los campos correspondientes con 2 decimales
+                document.getElementById('subtotal').value = subtotal.toFixed(2);
+                document.getElementById('iva').value = iva.toFixed(2);
+                document.getElementById('retencion_isr').value = isr.toFixed(2);
+                document.getElementById('total').value = total.toFixed(2);
+            }
+
+            // 2. Función para actualizar números de item y estado del botón eliminar
+            function actualizarNumeros() {
+                const filas = cuerpoTabla.querySelectorAll('tr');
+                filas.forEach((fila, index) => {
+                    fila.querySelector('.no-item').value = index + 1;
+                    const btnEliminar = fila.querySelector('.btn-eliminar');
+                    btnEliminar.disabled = filas.length === 1;
+                });
+                calcularTotales(); // Recalcular al agregar/eliminar filas
+            }
+
+            // 3. Función para calcular el costo final de una sola fila
+            function calcularCostoFinalFila(fila) {
+                const costoUnit = parseFloat(fila.querySelector('.costo-unitario').value) || 0;
+                const cantidad = parseFloat(fila.querySelector('.cantidad').value) || 0;
+                const costoFinalInput = fila.querySelector('.costo-final');
+                
+                costoFinalInput.value = (costoUnit * cantidad).toFixed(2);
+                calcularTotales(); // Recalcular totales generales al modificar una fila
+            }
+
+            // 4. Escuchar cambios en los inputs de precios y cantidades
+            cuerpoTabla.addEventListener('input', function(e) {
+                if (e.target.classList.contains('costo-unitario') || e.target.classList.contains('cantidad')) {
+                    const fila = e.target.closest('tr');
+                    calcularCostoFinalFila(fila);
+                }
+            });
+
+            // 5. Escuchar cambios en el interruptor de ISR
+            checkboxISR.addEventListener('change', calcularTotales);
+
+            // 6. Agregar nueva fila
+            btnAgregar.addEventListener('click', function() {
+                const primeraFila = cuerpoTabla.querySelector('tr');
+                const nuevaFila = primeraFila.cloneNode(true);
+                
+                nuevaFila.querySelectorAll('input:not(.no-item):not(.cantidad)').forEach(input => input.value = '');
+                nuevaFila.querySelector('.cantidad').value = '1';
+                nuevaFila.querySelector('.costo-final').value = '';
+                
+                cuerpoTabla.appendChild(nuevaFila);
+                actualizarNumeros();
+            });
+
+            // 7. Eliminar fila
+            cuerpoTabla.addEventListener('click', function(e) {
+                if (e.target.classList.contains('btn-eliminar')) {
+                    e.target.closest('tr').remove();
+                    actualizarNumeros();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
