@@ -10,6 +10,11 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
+@app.route('/cotizador')
+def mostrar_cotizador():
+    # Renderizamos el archivo que acabas de renombrar
+    return render_template('cotizador.html')
+
 @app.route('/generar', methods=['POST'])
 def generar_pdf():
     if request.method == 'POST':
