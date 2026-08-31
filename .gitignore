@@ -1,2 +1,4 @@
 cotizador/
 __pycache__/
+*.db
+instance/

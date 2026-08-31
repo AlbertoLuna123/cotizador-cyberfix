@@ -25,7 +25,24 @@
                     
                     <!-- Sección 1: Datos de la Empresa -->
                     <h4 class="mb-3 text-primary border-bottom pb-2">1. Datos de la Empresa</h4>
-                    
+                        <div class="mb-3">
+                            <label class="form-label text-primary fw-bold">Cargar Empresa Guardada:</label>
+                            <select class="form-select border-primary" id="select_empresa" onchange="llenarEmpresa()">
+                                <option value="">-- Seleccionar Empresa --</option>
+                                {% for emp in empresas %}
+                                <option value="{{ emp.id_empresa }}"
+                                        data-nombre="{{ emp.nombre_comercial_empresa or '' }}"
+                                        data-razon="{{ emp.razon_social_empresa or '' }}"
+                                        data-rfc="{{ emp.rfc_empresa or '' }}"
+                                        data-cp="{{ emp.cp_empresa or '' }}"
+                                        data-tel="{{ emp.telefono1_empresa or '' }}"
+                                        data-email="{{ emp.email_empresa or '' }}">
+                                    {{ emp.nombre_comercial_empresa }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <hr>
                     <!-- Agregué el logotipo aquí porque lo mencionaste en tu idea original -->
                     <div class="row mb-3">
                         <div class="col-md-12 mb-3">
@@ -65,7 +82,23 @@
 
                     <!-- Sección 2: Datos del Cliente -->
                     <h4 class="mb-3 text-primary border-bottom pb-2">2. Datos del Cliente</h4>
-                    
+                    <div class="mb-3">
+                        <label class="form-label text-primary fw-bold">Cargar Cliente Guardado:</label>
+                        <select class="form-select border-primary" id="select_cliente" onchange="llenarCliente()">
+                            <option value="">-- Seleccionar Cliente --</option>
+                            {% for cli in clientes %}
+                            <option value="{{ cli.id_cliente }}"
+                                    data-nombre="{{ cli.razon_social_cliente or '' }}"
+                                    data-rfc="{{ cli.rfc_cliente or '' }}"
+                                    data-email="{{ cli.email_cliente or '' }}"
+                                    data-dir="{{ cli.direccion_fiscal_cliente or '' }}"
+                                    data-tel="{{ cli.telefono1_cliente or '' }}">
+                                {{ cli.razon_social_cliente }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <hr>
                     <div class="row mb-3">
                         <!-- El número de cotización lo puse al principio de esta sección por visibilidad -->
                         <div class="col-md-4 mb-2">
@@ -282,6 +315,33 @@
                 }
             });
         });
+
+        function llenarEmpresa() {
+            var select = document.getElementById("select_empresa");
+            var option = select.options[select.selectedIndex];
+            
+            if(option.value !== "") {
+                document.getElementsByName("empresa_nombre_comercial")[0].value = option.getAttribute("data-nombre");
+                document.getElementsByName("empresa_razon_social")[0].value = option.getAttribute("data-razon");
+                document.getElementsByName("empresa_rfc")[0].value = option.getAttribute("data-rfc");
+                document.getElementsByName("empresa_cp")[0].value = option.getAttribute("data-cp");
+                document.getElementsByName("empresa_telefono")[0].value = option.getAttribute("data-tel");
+                document.getElementsByName("empresa_correo")[0].value = option.getAttribute("data-email");
+            }
+        }
+
+        function llenarCliente() {
+            var select = document.getElementById("select_cliente");
+            var option = select.options[select.selectedIndex];
+            
+            if(option.value !== "") {
+                document.getElementsByName("cliente_nombre")[0].value = option.getAttribute("data-nombre");
+                document.getElementsByName("cliente_rfc")[0].value = option.getAttribute("data-rfc");
+                document.getElementsByName("cliente_correo")[0].value = option.getAttribute("data-email");
+                document.getElementsByName("cliente_direccion")[0].value = option.getAttribute("data-dir");
+                document.getElementsByName("cliente_telefono1")[0].value = option.getAttribute("data-tel");
+            }
+        }
     </script>
 </body>
 </html>

@@ -1,19 +1,86 @@
 import os
-import base64 # <-- Importamos base64 para procesar la imagen
-from flask import Flask, render_template, request, make_response
+import base64
+from flask import Flask, render_template, request, make_response, redirect, url_for
 from xhtml2pdf import pisa
 from io import BytesIO
 
+# Importamos nuestra base de datos y los modelos
+from models import db, User, Empresa, Cliente, Cotizacion, CotizacionItem
+
 app = Flask(__name__)
+
+# Configuración de la base de datos (Usaremos SQLite localmente por ahora)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cotizador.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Inicializamos la BD con nuestra app
+db.init_app(app)
+
+# Creamos las tablas automáticamente si no existen
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# --- RUTA PARA EMPRESAS ---
+@app.route('/empresas', methods=['GET', 'POST'])
+def gestionar_empresas():
+    usuario_id_actual = 1 # Simulamos al usuario activo
+    
+    # Si el usuario envió el formulario para guardar una nueva empresa
+    if request.method == 'POST':
+        nueva_empresa = Empresa(
+            id_user=usuario_id_actual,
+            nombre_comercial_empresa=request.form.get('nombre_comercial'),
+            razon_social_empresa=request.form.get('razon_social'),
+            rfc_empresa=request.form.get('rfc'),
+            telefono1_empresa=request.form.get('telefono'),
+            email_empresa=request.form.get('correo')
+        )
+        db.session.add(nueva_empresa)
+        db.session.commit()
+        return redirect(url_for('gestionar_empresas')) # Recarga la página
+    
+    # Si solo está visitando la página, mostramos la lista
+    mis_empresas = Empresa.query.filter_by(id_user=usuario_id_actual).all()
+    return render_template('empresas.html', empresas=mis_empresas)
+
+
+# --- RUTA PARA CLIENTES ---
+@app.route('/clientes', methods=['GET', 'POST'])
+def gestionar_clientes():
+    usuario_id_actual = 1 
+    
+    if request.method == 'POST':
+        nuevo_cliente = Cliente(
+            id_user=usuario_id_actual,
+            razon_social_cliente=request.form.get('razon_social'),
+            nombre_contacto_cliente=request.form.get('contacto'),
+            rfc_cliente=request.form.get('rfc'),
+            telefono1_cliente=request.form.get('telefono'),
+            email_cliente=request.form.get('correo'),
+            direccion_fiscal_cliente=request.form.get('direccion')
+        )
+        db.session.add(nuevo_cliente)
+        db.session.commit()
+        return redirect(url_for('gestionar_clientes'))
+    
+    mis_clientes = Cliente.query.filter_by(id_user=usuario_id_actual).all()
+    return render_template('clientes.html', clientes=mis_clientes)
+
 @app.route('/cotizador')
 def mostrar_cotizador():
-    # Renderizamos el archivo que acabas de renombrar
-    return render_template('cotizador.html')
+    # Simulamos que el usuario logueado es el ID 1
+    usuario_id_actual = 1
+    
+    # Consultamos la base de datos
+    mis_empresas = Empresa.query.filter_by(id_user=usuario_id_actual).all()
+    mis_clientes = Cliente.query.filter_by(id_user=usuario_id_actual).all()
+    
+    # Enviamos los datos al HTML
+    return render_template('cotizador.html', empresas=mis_empresas, clientes=mis_clientes)
 
 @app.route('/generar', methods=['POST'])
 def generar_pdf():
