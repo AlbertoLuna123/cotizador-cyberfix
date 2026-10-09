@@ -22,28 +22,50 @@
                     <div class="card-body">
                         <form action="/clientes" method="POST">
                             <div class="mb-3">
-                                <label>Razón Social o Nombre*</label>
-                                <input type="text" class="form-control" name="razon_social" required>
+                                <label class="form-label small">Razón Social o Nombre*</label>
+                                <input type="text" class="form-control form-control-sm" name="razon_social" required>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="es_sa" id="checkSA">
+                                <label class="form-check-label small text-muted" for="checkSA">
+                                    ¿Es Sociedad Anónima (S.A.)?
+                                </label>
                             </div>
                             <div class="mb-3">
-                                <label>Contacto (Atención a)</label>
-                                <input type="text" class="form-control" name="contacto">
+                                <label class="form-label small">Contacto (Atención a)</label>
+                                <input type="text" class="form-control form-control-sm" name="contacto">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label small">RFC</label>
+                                    <input type="text" class="form-control form-control-sm" name="rfc">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label small">C.P.</label>
+                                    <input type="text" class="form-control form-control-sm" name="cp">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label small">Teléfono 1</label>
+                                    <input type="text" class="form-control form-control-sm" name="telefono1">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label small">Teléfono 2</label>
+                                    <input type="text" class="form-control form-control-sm" name="telefono2">
+                                </div>
                             </div>
                             <div class="mb-3">
-                                <label>RFC</label>
-                                <input type="text" class="form-control" name="rfc">
+                                <label class="form-label small">Correo Electrónico</label>
+                                <input type="email" class="form-control form-control-sm" name="correo">
                             </div>
                             <div class="mb-3">
-                                <label>Teléfono</label>
-                                <input type="text" class="form-control" name="telefono">
+                                <label class="form-label small">Dirección Fiscal</label>
+                                <input type="text" class="form-control form-control-sm" name="direccion_fiscal">
                             </div>
                             <div class="mb-3">
-                                <label>Correo Electrónico</label>
-                                <input type="email" class="form-control" name="correo">
-                            </div>
-                            <div class="mb-3">
-                                <label>Dirección Fiscal</label>
-                                <input type="text" class="form-control" name="direccion">
+                                <label class="form-label small">Lugar de Entrega / Servicio</label>
+                                <input type="text" class="form-control form-control-sm" name="direccion_entrega">
                             </div>
                             <button type="submit" class="btn btn-success w-100">Guardar Cliente</button>
                         </form>
@@ -55,21 +77,32 @@
             <div class="col-md-8">
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h4 class="text-success fw-bold mb-3">Tu Cartera de Clientes</h4>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="text-success fw-bold m-0">Tu Cartera de Clientes</h4>
+                        </div>
                         <table class="table table-striped table-hover">
                             <thead class="table-success">
                                 <tr>
                                     <th>Cliente</th>
                                     <th>Contacto</th>
                                     <th>RFC / Teléfono</th>
+                                    <th class="text-end"></th> <!-- NUEVA COLUMNA -->
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for cli in clientes %}
                                 <tr>
-                                    <td><strong>{{ cli.razon_social_cliente }}</strong><br><small class="text-muted">{{ cli.email_cliente }}</small></td>
+                                    <td>
+                                        <strong>{{ cli.razon_social_cliente }}</strong>
+                                        {% if cli.es_sa_cliente %}<span class="badge bg-secondary ms-1">S.A.</span>{% endif %}
+                                        <br><small class="text-muted">{{ cli.email_cliente }}</small>
+                                    </td>
                                     <td>{{ cli.nombre_contacto_cliente }}</td>
                                     <td>{{ cli.rfc_cliente }}<br><small>{{ cli.telefono1_cliente }}</small></td>
+                                    <!-- BOTÓN DE EDITAR -->
+                                    <td class="text-end">
+                                        <a href="/clientes/editar/{{ cli.id_cliente }}" class="btn btn-sm btn-outline-primary">Editar</a>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

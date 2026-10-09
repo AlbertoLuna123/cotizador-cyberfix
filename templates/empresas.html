@@ -22,24 +22,36 @@
                     <div class="card-body">
                         <form action="/empresas" method="POST">
                             <div class="mb-3">
-                                <label>Nombre Comercial*</label>
-                                <input type="text" class="form-control" name="nombre_comercial" required>
+                                <label class="form-label small">Nombre Comercial*</label>
+                                <input type="text" class="form-control form-control-sm" name="nombre_comercial" required>
                             </div>
                             <div class="mb-3">
-                                <label>Razón Social</label>
-                                <input type="text" class="form-control" name="razon_social">
+                                <label class="form-label small">Razón Social</label>
+                                <input type="text" class="form-control form-control-sm" name="razon_social">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label small">RFC</label>
+                                    <input type="text" class="form-control form-control-sm" name="rfc">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label small">C.P.</label>
+                                    <input type="text" class="form-control form-control-sm" name="cp">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label small">Teléfono 1</label>
+                                    <input type="text" class="form-control form-control-sm" name="telefono1">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label small">Teléfono 2</label>
+                                    <input type="text" class="form-control form-control-sm" name="telefono2">
+                                </div>
                             </div>
                             <div class="mb-3">
-                                <label>RFC</label>
-                                <input type="text" class="form-control" name="rfc">
-                            </div>
-                            <div class="mb-3">
-                                <label>Teléfono</label>
-                                <input type="text" class="form-control" name="telefono">
-                            </div>
-                            <div class="mb-3">
-                                <label>Correo Electrónico</label>
-                                <input type="email" class="form-control" name="correo">
+                                <label class="form-label small">Correo Electrónico</label>
+                                <input type="email" class="form-control form-control-sm" name="correo">
                             </div>
                             <button type="submit" class="btn btn-info text-white w-100">Guardar Empresa</button>
                         </form>
@@ -59,6 +71,7 @@
                                     <th>RFC</th>
                                     <th>Teléfono</th>
                                     <th>Correo</th>
+                                    <th class="text-end"></th> <!-- NUEVA COLUMNA -->
                                 </tr>
                             </thead>
                             <tbody>
@@ -68,6 +81,10 @@
                                     <td>{{ emp.rfc_empresa }}</td>
                                     <td>{{ emp.telefono1_empresa }}</td>
                                     <td>{{ emp.email_empresa }}</td>
+                                    <!-- BOTÓN DE EDITAR -->
+                                    <td class="text-end">
+                                        <a href="/empresas/editar/{{ emp.id_empresa }}" class="btn btn-sm btn-outline-info">Editar</a>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

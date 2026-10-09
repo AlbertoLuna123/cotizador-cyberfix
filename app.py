@@ -36,7 +36,9 @@ def gestionar_empresas():
             nombre_comercial_empresa=request.form.get('nombre_comercial'),
             razon_social_empresa=request.form.get('razon_social'),
             rfc_empresa=request.form.get('rfc'),
-            telefono1_empresa=request.form.get('telefono'),
+            cp_empresa=request.form.get('cp'),                    # <-- NUEVO
+            telefono1_empresa=request.form.get('telefono1'),      # <-- ACTUALIZADO
+            telefono2_empresa=request.form.get('telefono2'),      # <-- NUEVO
             email_empresa=request.form.get('correo')
         )
         db.session.add(nueva_empresa)
@@ -47,6 +49,27 @@ def gestionar_empresas():
     mis_empresas = Empresa.query.filter_by(id_user=usuario_id_actual).all()
     return render_template('empresas.html', empresas=mis_empresas)
 
+@app.route('/empresas/editar/<int:id_empresa>', methods=['GET', 'POST'])
+def editar_empresa(id_empresa):
+    # Buscamos la empresa en la base de datos
+    empresa = Empresa.query.get_or_404(id_empresa)
+    
+    # Si el usuario hace clic en "Guardar Cambios"
+    if request.method == 'POST':
+        empresa.nombre_comercial_empresa = request.form.get('nombre_comercial')
+        empresa.razon_social_empresa = request.form.get('razon_social')
+        empresa.rfc_empresa = request.form.get('rfc')
+        empresa.cp_empresa = request.form.get('cp')
+        empresa.telefono1_empresa = request.form.get('telefono1')
+        empresa.telefono2_empresa = request.form.get('telefono2')
+        empresa.email_empresa = request.form.get('correo')
+        
+        # Guardamos la actualización
+        db.session.commit()
+        return redirect(url_for('gestionar_empresas'))
+    
+    # Si entra por el enlace, mostramos el formulario
+    return render_template('editar_empresa.html', empresa=empresa)
 
 # --- RUTA PARA CLIENTES ---
 @app.route('/clientes', methods=['GET', 'POST'])
@@ -54,14 +77,19 @@ def gestionar_clientes():
     usuario_id_actual = 1 
     
     if request.method == 'POST':
+        es_sa_booleano = True if request.form.get('es_sa') == 'on' else False
         nuevo_cliente = Cliente(
             id_user=usuario_id_actual,
             razon_social_cliente=request.form.get('razon_social'),
+            es_sa_cliente=es_sa_booleano,
             nombre_contacto_cliente=request.form.get('contacto'),
             rfc_cliente=request.form.get('rfc'),
-            telefono1_cliente=request.form.get('telefono'),
+            cp_cliente=request.form.get('cp'),                    # <-- NUEVO
+            telefono1_cliente=request.form.get('telefono1'),      # <-- ACTUALIZADO
+            telefono2_cliente=request.form.get('telefono2'),      # <-- NUEVO
             email_cliente=request.form.get('correo'),
-            direccion_fiscal_cliente=request.form.get('direccion')
+            direccion_fiscal_cliente=request.form.get('direccion_fiscal'),  # <-- ACTUALIZADO
+            direccion_entrega_cliente=request.form.get('direccion_entrega') # <-- NUEVO
         )
         db.session.add(nuevo_cliente)
         db.session.commit()
@@ -69,6 +97,31 @@ def gestionar_clientes():
     
     mis_clientes = Cliente.query.filter_by(id_user=usuario_id_actual).all()
     return render_template('clientes.html', clientes=mis_clientes)
+
+@app.route('/clientes/editar/<int:id_cliente>', methods=['GET', 'POST'])
+def editar_cliente(id_cliente):
+    # Buscamos al cliente en la base de datos por su ID
+    cliente = Cliente.query.get_or_404(id_cliente)
+    
+    # Si el usuario hace clic en "Guardar Cambios"
+    if request.method == 'POST':
+        cliente.razon_social_cliente = request.form.get('razon_social')
+        cliente.es_sa_cliente = True if request.form.get('es_sa') == 'on' else False
+        cliente.nombre_contacto_cliente = request.form.get('contacto')
+        cliente.rfc_cliente = request.form.get('rfc')
+        cliente.cp_cliente = request.form.get('cp')
+        cliente.telefono1_cliente = request.form.get('telefono1')
+        cliente.telefono2_cliente = request.form.get('telefono2')
+        cliente.email_cliente = request.form.get('correo')
+        cliente.direccion_fiscal_cliente = request.form.get('direccion_fiscal')
+        cliente.direccion_entrega_cliente = request.form.get('direccion_entrega')
+        
+        # Guardamos la actualización
+        db.session.commit()
+        return redirect(url_for('gestionar_clientes'))
+    
+    # Si solo está entrando a la página, mostramos el formulario
+    return render_template('editar_cliente.html', cliente=cliente)
 
 @app.route('/cotizador')
 def mostrar_cotizador():

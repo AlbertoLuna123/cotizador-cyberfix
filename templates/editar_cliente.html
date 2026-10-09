@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Cliente</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/clientes">&larr; Volver a Clientes</a>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white fw-bold">
+                        Editar Información de Cliente
+                    </div>
+                    <div class="card-body">
+                        <!-- El formulario envía por POST a la misma ruta en la que está -->
+                        <form action="/clientes/editar/{{ cliente.id_cliente }}" method="POST">
+                            
+                            <div class="mb-3">
+                                <label class="form-label small">Razón Social o Nombre*</label>
+                                <input type="text" class="form-control form-control-sm" name="razon_social" value="{{ cliente.razon_social_cliente or '' }}" required>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                <!-- Usamos if para marcar la casilla si es True -->
+                                <input class="form-check-input" type="checkbox" name="es_sa" id="checkSA" {% if cliente.es_sa_cliente %}checked{% endif %}>
+                                <label class="form-check-label small text-muted" for="checkSA">
+                                    ¿Es Sociedad Anónima (S.A.)?
+                                </label>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small">Contacto (Atención a)</label>
+                                <input type="text" class="form-control form-control-sm" name="contacto" value="{{ cliente.nombre_contacto_cliente or '' }}">
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label small">RFC</label>
+                                    <input type="text" class="form-control form-control-sm" name="rfc" value="{{ cliente.rfc_cliente or '' }}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label small">C.P.</label>
+                                    <input type="text" class="form-control form-control-sm" name="cp" value="{{ cliente.cp_cliente or '' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label small">Teléfono 1</label>
+                                    <input type="text" class="form-control form-control-sm" name="telefono1" value="{{ cliente.telefono1_cliente or '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label small">Teléfono 2</label>
+                                    <input type="text" class="form-control form-control-sm" name="telefono2" value="{{ cliente.telefono2_cliente or '' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label small">Correo Electrónico</label>
+                                <input type="email" class="form-control form-control-sm" name="correo" value="{{ cliente.email_cliente or '' }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label small">Dirección Fiscal</label>
+                                <input type="text" class="form-control form-control-sm" name="direccion_fiscal" value="{{ cliente.direccion_fiscal_cliente or '' }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label small">Lugar de Entrega / Servicio</label>
+                                <input type="text" class="form-control form-control-sm" name="direccion_entrega" value="{{ cliente.direccion_entrega_cliente or '' }}">
+                            </div>
+                            
+                            <div class="d-flex justify-content-end gap-2 mt-4">
+                                <a href="/clientes" class="btn btn-secondary">Cancelar</a>
+                                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

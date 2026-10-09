@@ -35,7 +35,8 @@
                                         data-razon="{{ emp.razon_social_empresa or '' }}"
                                         data-rfc="{{ emp.rfc_empresa or '' }}"
                                         data-cp="{{ emp.cp_empresa or '' }}"
-                                        data-tel="{{ emp.telefono1_empresa or '' }}"
+                                        data-tel1="{{ emp.telefono1_empresa or '' }}"
+                                        data-tel2="{{ emp.telefono2_empresa or '' }}"
                                         data-email="{{ emp.email_empresa or '' }}">
                                     {{ emp.nombre_comercial_empresa }}
                                 </option>
@@ -71,10 +72,16 @@
                             <input type="text" class="form-control" name="empresa_cp">
                         </div>
                         <div class="col-md-4 mb-2">
-                            <label class="form-label">Teléfono</label>
+                            <label class="form-label">Teléfono 1</label>
                             <input type="tel" class="form-control" name="empresa_telefono">
                         </div>
                         <div class="col-md-4 mb-2">
+                            <label class="form-label">Teléfono 2</label>
+                            <input type="tel" class="form-control" name="empresa_telefono2">
+                        </div>
+                    </div>
+                    <div class="row mb-4"> 
+                        <div class="col-md-6 mb-2">
                             <label class="form-label">Correo electrónico</label>
                             <input type="email" class="form-control" name="empresa_correo">
                         </div>
@@ -88,13 +95,16 @@
                             <option value="">-- Seleccionar Cliente --</option>
                             {% for cli in clientes %}
                             <option value="{{ cli.id_cliente }}"
-                                    data-nombre="{{ cli.razon_social_cliente or '' }}"
-                                    data-rfc="{{ cli.rfc_cliente or '' }}"
-                                    data-email="{{ cli.email_cliente or '' }}"
-                                    data-dir="{{ cli.direccion_fiscal_cliente or '' }}"
-                                    data-tel="{{ cli.telefono1_cliente or '' }}">
-                                {{ cli.razon_social_cliente }}
-                            </option>
+                                data-nombre="{{ cli.razon_social_cliente or '' }}"
+                                data-rfc="{{ cli.rfc_cliente or '' }}"
+                                data-cp="{{ cli.cp_cliente or '' }}"
+                                data-email="{{ cli.email_cliente or '' }}"
+                                data-dir="{{ cli.direccion_fiscal_cliente or '' }}"
+                                data-tel1="{{ cli.telefono1_cliente or '' }}"
+                                data-tel2="{{ cli.telefono2_cliente or '' }}"
+                                data-entrega="{{ cli.direccion_entrega_cliente or '' }}">
+                            {{ cli.razon_social_cliente }}
+                        </option>
                             {% endfor %}
                         </select>
                     </div>
@@ -114,7 +124,6 @@
                             <input type="text" class="form-control" name="cliente_atencion" placeholder="Nombre de contacto">
                         </div>
                     </div>
-
                     <div class="row mb-3">
                         <div class="col-md-4 mb-2">
                             <label class="form-label">RFC</label>
@@ -129,7 +138,6 @@
                             <input type="text" class="form-control" name="cliente_direccion">
                         </div>
                     </div>
-
                     <div class="row mb-4">
                         <div class="col-md-4 mb-2">
                             <label class="form-label">Teléfono 1</label>
@@ -141,10 +149,9 @@
                         </div>
                         <div class="col-md-4 mb-2">
                             <label class="form-label">Lugar de entrega</label>
-                            <input type="text" class="form-control" name="cliente_entrega">
+                            <input type="text" class="form-control" name="cliente_direccion_entrega">
                         </div>
                     </div>
-
                     <!-- Sección 3: Artículos -->
                                 <!-- Sección 3: Artículos -->
                     <h4 class="mb-3 text-primary border-bottom pb-2">3. Artículos a Cotizar</h4>
@@ -153,7 +160,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th style="width: 8%;">No. Item</th>
-                                    <th style="width: 15%;">Item (Código/SKU)</th>
+                                    <th style="width: 15%;">Nombre Item</th>
                                     <th style="width: 30%;">Descripción</th>
                                     <th style="width: 15%;">Costo Unit. ($)</th>
                                     <th style="width: 10%;">Cantidad</th>
@@ -325,7 +332,10 @@
                 document.getElementsByName("empresa_razon_social")[0].value = option.getAttribute("data-razon");
                 document.getElementsByName("empresa_rfc")[0].value = option.getAttribute("data-rfc");
                 document.getElementsByName("empresa_cp")[0].value = option.getAttribute("data-cp");
-                document.getElementsByName("empresa_telefono")[0].value = option.getAttribute("data-tel");
+                document.getElementsByName("empresa_telefono")[0].value = option.getAttribute("data-tel1");
+                if(document.getElementsByName("empresa_telefono2").length > 0) {
+                    document.getElementsByName("empresa_telefono2")[0].value = option.getAttribute("data-tel2");
+                }
                 document.getElementsByName("empresa_correo")[0].value = option.getAttribute("data-email");
             }
         }
@@ -337,9 +347,23 @@
             if(option.value !== "") {
                 document.getElementsByName("cliente_nombre")[0].value = option.getAttribute("data-nombre");
                 document.getElementsByName("cliente_rfc")[0].value = option.getAttribute("data-rfc");
+                // Nuevo campo CP
+                if(document.getElementsByName("cliente_cp").length > 0) {
+                    document.getElementsByName("cliente_cp")[0].value = option.getAttribute("data-cp");
+                }
                 document.getElementsByName("cliente_correo")[0].value = option.getAttribute("data-email");
                 document.getElementsByName("cliente_direccion")[0].value = option.getAttribute("data-dir");
-                document.getElementsByName("cliente_telefono1")[0].value = option.getAttribute("data-tel");
+                document.getElementsByName("cliente_telefono1")[0].value = option.getAttribute("data-tel1");
+                // Nuevos campos Tel2 y Entrega
+                if(document.getElementsByName("cliente_telefono2").length > 0) {
+                    document.getElementsByName("cliente_telefono2")[0].value = option.getAttribute("data-tel2");
+                }
+                if(document.getElementsByName("cliente_direccion_entrega").length > 0) {
+                    document.getElementsByName("cliente_direccion_entrega")[0].value = option.getAttribute("data-entrega");
+                }
+                if(document.getElementsByName("cliente_direccion_fiscal").length > 0) {
+                    document.getElementsByName("cliente_direccion_fiscal")[0].value = option.getAttribute("data-fiscal");
+                }
             }
         }
     </script>
