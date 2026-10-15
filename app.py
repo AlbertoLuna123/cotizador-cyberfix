@@ -169,7 +169,7 @@ def generar_pdf():
             'direccion': request.form.get('cliente_direccion'),
             'telefono1': request.form.get('cliente_telefono1'),
             'telefono2': request.form.get('cliente_telefono2'),
-            'entrega': request.form.get('cliente_entrega')
+            'entrega': request.form.get('cliente_direccion_entrega', 'Por definir')
         }
 
         # 3. Recolectar Artículos
@@ -207,7 +207,7 @@ def generar_pdf():
                                            articulos=articulos, 
                                            totales=totales, 
                                            clausulas=clausulas,
-                                           logo_base64=logo_base64) # <-- Pasamos la imagen
+                                           logo_base64=logo_base64)
 
         # 6. Convertir a PDF con xhtml2pdf
         pdf_buffer = BytesIO()

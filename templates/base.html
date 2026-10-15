@@ -12,8 +12,11 @@
     
     <style>
         .sidebar {
-            min-height: 100vh;
-            background-color: #212529; /* Gris oscuro elegante */
+            height: 100vh; /* Altura fija al 100% de la ventana */
+            position: sticky; /* Hace que se quede pegado */
+            top: 0; /* Lo pega exactamente en el borde superior */
+            overflow-y: auto; /* Si agregas muchos menús después, permitirá hacer scroll solo en la barra oscura */
+            background-color: #212529;
         }
         .nav-link {
             color: #adb5bd;
