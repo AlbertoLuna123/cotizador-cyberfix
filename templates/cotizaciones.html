@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Cotizaciones{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold m-0 text-dark">Historial de Cotizaciones</h3>
+        <a href="/cotizador" class="btn btn-success fw-bold"><i class="bi bi-plus-lg me-1"></i> Nueva Cotización</a>
+    </div>
+    <!-- Buscador -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="buscadorCotizaciones" class="form-control border-start-0 ps-0" placeholder="Buscar por folio o cliente...">
+            </div>
+        </div>
+    </div>
+    <!-- Pestañas de Navegación -->
+    <ul class="nav nav-tabs mb-4" id="cotizacionesTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold text-primary" id="abiertas-tab" data-bs-toggle="tab" data-bs-target="#abiertas" type="button" role="tab" aria-selected="true">
+                <i class="bi bi-envelope-paper me-1"></i> Abiertas ({{ abiertas|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-warning" id="proceso-tab" data-bs-toggle="tab" data-bs-target="#proceso" type="button" role="tab" aria-selected="false">
+                <i class="bi bi-clock-history me-1"></i> En Proceso ({{ en_proceso|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-danger" id="declinadas-tab" data-bs-toggle="tab" data-bs-target="#declinadas" type="button" role="tab" aria-selected="false">
+                <i class="bi bi-x-circle me-1"></i> Declinadas ({{ declinadas|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-success" id="pagadas-tab" data-bs-toggle="tab" data-bs-target="#pagadas" type="button" role="tab" aria-selected="false">
+                <i class="bi bi-check-circle me-1"></i> Pagadas ({{ pagadas|length }})
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenido de las Pestañas -->
+    <div class="tab-content" id="cotizacionesTabContent">  
+        <!-- PESTAÑA 1: ABIERTAS -->
+        <div class="tab-pane fade show active" id="abiertas" role="tabpanel" tabindex="0">
+            <div class="card shadow-sm border-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-primary">
+                            <tr>
+                                <th class="ps-4">Folio</th>
+                                <th>Fecha de Emisión</th>
+                                <th>Cliente</th>
+                                <th>Monto Total</th>
+                                <th>Estatus</th>
+                                <th class="text-end pe-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cot in abiertas %}
+                            <tr>
+                                <td class="ps-4 text-primary fw-bold">{{ cot.folio_cotizacion }}</td>
+                                <td>{{ cot.fecha_emision.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ cot.cliente_receptor.razon_social_cliente }}</td>
+                                <td class="fw-bold text-success">${{ cot.total_cotizacion }}</td>
+                                <td><span class="badge bg-primary">Abierta</span></td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="verPDF({{ cot.id_cotizacion }})">Ver PDF</button>
+                                    <a href="/editar_cotizacion/{{ cot.id_cotizacion }}" class="btn btn-sm btn-outline-secondary fw-bold">
+                                        <i class="bi bi-pencil-square"></i> Editar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-5">No hay cotizaciones abiertas.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 2: EN PROCESO -->
+        <div class="tab-pane fade" id="proceso" role="tabpanel" tabindex="0">
+            <div class="card shadow-sm border-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-warning">
+                            <tr>
+                                <th class="ps-4">Folio</th>
+                                <th>Fecha de Emisión</th>
+                                <th>Cliente</th>
+                                <th>Monto Total</th>
+                                <th>Estatus</th>
+                                <th class="text-end pe-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cot in en_proceso %}
+                            <tr>
+                                <td class="ps-4 text-primary fw-bold">{{ cot.folio_cotizacion }}</td>
+                                <td>{{ cot.fecha_emision.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ cot.cliente_receptor.razon_social_cliente }}</td>
+                                <td class="fw-bold text-success">${{ cot.total_cotizacion }}</td>
+                                <td><span class="badge bg-warning text-dark">En Proceso</span></td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="verPDF({{ cot.id_cotizacion }})">Ver PDF</button>
+                                    <a href="/editar_cotizacion/{{ cot.id_cotizacion }}" class="btn btn-sm btn-outline-secondary fw-bold">
+                                        <i class="bi bi-pencil-square"></i> Editar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-5">No hay cotizaciones en proceso.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 3: DECLINADAS -->
+        <div class="tab-pane fade" id="declinadas" role="tabpanel" tabindex="0">
+            <div class="card shadow-sm border-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-danger">
+                            <tr>
+                                <th class="ps-4">Folio</th>
+                                <th>Fecha de Emisión</th>
+                                <th>Cliente</th>
+                                <th>Monto Total</th>
+                                <th>Estatus</th>
+                                <th class="text-end pe-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cot in declinadas %}
+                            <tr>
+                                <td class="ps-4 text-primary fw-bold">{{ cot.folio_cotizacion }}</td>
+                                <td>{{ cot.fecha_emision.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ cot.cliente_receptor.razon_social_cliente }}</td>
+                                <td class="fw-bold text-success">${{ cot.total_cotizacion }}</td>
+                                <td><span class="badge bg-danger">Declinada</span></td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="verPDF({{ cot.id_cotizacion }})">Ver PDF</button>
+                                    <a href="/editar_cotizacion/{{ cot.id_cotizacion }}" class="btn btn-sm btn-outline-secondary fw-bold">
+                                        <i class="bi bi-pencil-square"></i> Editar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-5">No hay cotizaciones declinadas.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 4: PAGADAS -->
+        <div class="tab-pane fade" id="pagadas" role="tabpanel" tabindex="0">
+            <div class="card shadow-sm border-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-success">
+                            <tr>
+                                <th class="ps-4">Folio</th>
+                                <th>Fecha de Emisión</th>
+                                <th>Cliente</th>
+                                <th>Monto Total</th>
+                                <th>Estatus</th>
+                                <th class="text-end pe-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cot in pagadas %}
+                            <tr>
+                                <td class="ps-4 text-primary fw-bold">{{ cot.folio_cotizacion }}</td>
+                                <td>{{ cot.fecha_emision.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ cot.cliente_receptor.razon_social_cliente }}</td>
+                                <td class="fw-bold text-success">${{ cot.total_cotizacion }}</td>
+                                <td><span class="badge bg-success">Pagada</span></td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="verPDF({{ cot.id_cotizacion }})">Ver PDF</button>
+                                    <a href="/editar_cotizacion/{{ cot.id_cotizacion }}" class="btn btn-sm btn-outline-secondary fw-bold">
+                                        <i class="bi bi-pencil-square"></i> Editar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-5">No hay cotizaciones pagadas.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Visualizar PDF -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white py-2">
+                    <h5 class="modal-title fs-6"><i class="bi bi-file-earmark-pdf me-2"></i>Visualizador de Cotización</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0" style="height: 80vh;">
+                    <iframe id="pdfFrame" src="" width="100%" height="100%" style="border: none;"></iframe>
+                </div>
+                
+                <!-- NUEVO: Botones para cambiar el estatus -->
+                <div class="modal-footer bg-light py-2">
+                    <span class="text-muted me-auto small fw-bold">Mover a:</span>
+                    <button type="button" class="btn btn-warning btn-sm fw-bold text-dark" id="btnEnProceso">En Proceso</button>
+                    <button type="button" class="btn btn-danger btn-sm fw-bold" id="btnDeclinada">Declinada</button>
+                    <button type="button" class="btn btn-success btn-sm fw-bold" id="btnPagada">Pagada</button>
+                </div>
+                <!-- FIN NUEVO -->
+                
+            </div>
+        </div>
+    </div>
+
+<!-- Script para inyectar la URL del PDF y configurar los botones -->
+    <script>
+        function verPDF(idCotizacion) {
+            // 1. Cargamos el PDF en el iframe
+            const iframe = document.getElementById('pdfFrame');
+            iframe.src = `/ver_pdf/${idCotizacion}`;
+            
+            // 2. Configuramos los botones para que apunten a la nueva ruta de Flask con el ID correcto
+            document.getElementById('btnEnProceso').onclick = function() { 
+                window.location.href = `/cambiar_estatus/${idCotizacion}/En proceso`; 
+            };
+            document.getElementById('btnDeclinada').onclick = function() { 
+                window.location.href = `/cambiar_estatus/${idCotizacion}/Declinada`; 
+            };
+            document.getElementById('btnPagada').onclick = function() { 
+                window.location.href = `/cambiar_estatus/${idCotizacion}/Pagada`; 
+            };
+            
+            // 3. Mostramos el modal
+            const myModal = new bootstrap.Modal(document.getElementById('pdfModal'));
+            myModal.show();
+        }
+    </script>
+    <!-- Script del Buscador en tiempo real -->
+    <script>
+        document.getElementById('buscadorCotizaciones').addEventListener('keyup', function() {
+            // Obtenemos lo que el usuario escribió y lo pasamos a minúsculas
+            let textoBusqueda = this.value.toLowerCase();
+            
+            // Seleccionamos todos los renglones (tr) de todas las tablas dentro de las pestañas
+            let renglones = document.querySelectorAll('.tab-content tbody tr');
+
+            renglones.forEach(function(renglon) {
+                // Si el renglón es el mensaje de "No hay cotizaciones", lo ignoramos
+                if (renglon.cells.length < 5) return;
+
+                // Extraemos el texto de la columna Folio (índice 0) y Cliente (índice 2)
+                let folio = renglon.cells[0].textContent.toLowerCase();
+                let cliente = renglon.cells[2].textContent.toLowerCase();
+
+                // Si el folio o el cliente contienen el texto buscado, mostramos el renglón. Si no, lo ocultamos.
+                if (folio.includes(textoBusqueda) || cliente.includes(textoBusqueda)) {
+                    renglon.style.display = '';
+                } else {
+                    renglon.style.display = 'none';
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -67,6 +67,7 @@ class Cotizacion(db.Model):
     id_cliente = db.Column(db.Integer, db.ForeignKey('cliente.id_cliente'), nullable=False)
     
     folio_cotizacion = db.Column(db.String(50), nullable=False)
+    estatus_cotizacion = db.Column(db.String(20), default='Abierta')
     fecha_emision = db.Column(db.DateTime, default=datetime.utcnow)
     clausulas_cotizacion = db.Column(db.Text)
     aplica_isr_cotizacion = db.Column(db.Boolean, default=False)
@@ -87,6 +88,7 @@ class CotizacionItem(db.Model):
     id_cotizacion = db.Column(db.Integer, db.ForeignKey('cotizacion.id_cotizacion'), nullable=False)
     
     orden_cotizacion_item = db.Column(db.Integer)
+    # nombre del articulo o servicio
     sku_cotizacion_item = db.Column(db.String(100))
     descripcion_item_cotizacion = db.Column(db.Text, nullable=False)
     costo_unitario_item_cotizacion = db.Column(db.Numeric(10, 2), nullable=False)

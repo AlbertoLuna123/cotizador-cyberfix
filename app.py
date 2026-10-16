@@ -123,6 +123,27 @@ def editar_cliente(id_cliente):
     # Si solo está entrando a la página, mostramos el formulario
     return render_template('editar_cliente.html', cliente=cliente)
 
+@app.route('/cotizaciones')
+def gestionar_cotizaciones():
+    # 1. Traemos las Abiertas
+    abiertas = Cotizacion.query.filter_by(estatus_cotizacion='Abierta').order_by(Cotizacion.fecha_emision.desc()).all()
+    
+    # 2. Traemos las que están En Proceso
+    en_proceso = Cotizacion.query.filter_by(estatus_cotizacion='En proceso').order_by(Cotizacion.fecha_emision.desc()).all()
+    
+    # 3. Traemos las Declinadas
+    declinadas = Cotizacion.query.filter_by(estatus_cotizacion='Declinada').order_by(Cotizacion.fecha_emision.desc()).all()
+    
+    # 4. Traemos las Pagadas
+    pagadas = Cotizacion.query.filter_by(estatus_cotizacion='Pagada').order_by(Cotizacion.fecha_emision.desc()).all()
+    
+    # Enviamos las 4 listas a la página HTML
+    return render_template('cotizaciones.html', 
+                           abiertas=abiertas, 
+                           en_proceso=en_proceso, 
+                           declinadas=declinadas,
+                           pagadas=pagadas)
+
 @app.route('/cotizador')
 def mostrar_cotizador():
     # Simulamos que el usuario logueado es el ID 1
@@ -173,11 +194,11 @@ def generar_pdf():
         }
 
         # 3. Recolectar Artículos
-        items = request.form.getlist('items[]')
-        descripciones = request.form.getlist('descripciones[]')
-        costos_unitarios = request.form.getlist('costos_unitarios[]')
-        cantidades = request.form.getlist('cantidades[]')
-        costos_finales = request.form.getlist('costos_finales[]')
+        items = request.form.getlist('item')
+        descripciones = request.form.getlist('descripcion')
+        costos_unitarios = request.form.getlist('costo_unitario')
+        cantidades = request.form.getlist('cantidad')
+        costos_finales = request.form.getlist('costo_final')
 
         articulos = []
         for i in range(len(items)):
@@ -199,6 +220,81 @@ def generar_pdf():
             'total': request.form.get('total')
         }
         clausulas = request.form.get('clausulas')
+
+
+        # ---------------------------------------------------------
+        # 4. GUARDAR EN LA BASE DE DATOS
+        # ---------------------------------------------------------
+        # (Asegúrate de que el select de tu formulario HTML tenga el name="id_cliente")
+        cliente_id = request.form.get('id_cliente') 
+        
+        # Si el usuario seleccionó un cliente de la lista, guardamos la cotización
+        if cliente_id:
+            try:
+                # 4.1 Crear el registro principal de la Cotización
+                # --- NUEVA LÓGICA DE FOLIO DINÁMICO ---
+                # 1. Traemos la información de la Empresa y el Cliente
+                empresa_db = Empresa.query.get(1) # Temporal: Empresa 1
+                cliente_db = Cliente.query.get(cliente_id)
+                
+                # 2. Extraemos las primeras 2 letras, quitamos espacios y pasamos a mayúsculas
+                # Nota: Ajusta 'nombre_comercial_empresa' si en tu modelo se llama diferente
+                letras_emp = empresa_db.nombre_comercial_empresa.replace(" ", "")[:2].upper()
+                letras_cli = cliente_db.razon_social_cliente.replace(" ", "")[:2].upper()
+                
+                # 3. Contamos cuántas cotizaciones existen ya para ESTE cliente
+                cantidad_previas = Cotizacion.query.filter_by(id_cliente=cliente_id).count()
+                siguiente_num = cantidad_previas + 1
+                
+                # 4. Construimos el folio (zfill(4) rellena con ceros a la izquierda, ej: 0001)
+                nuevo_folio = f"{letras_emp}-{letras_cli}-{str(siguiente_num).zfill(4)}"
+                
+                # 5. Sobrescribimos el dato en el diccionario que va hacia el PDF para que se imprima correctamente
+                cliente['numero_cotizacion'] = nuevo_folio
+                # --------------------------------------
+
+                # 4.1 Crear el registro principal de la Cotización
+                nueva_cotizacion = Cotizacion(
+                    id_user=1,       
+                    id_empresa=1,    
+                    id_cliente=cliente_id,
+                    
+                    # Le pasamos nuestra nueva variable generada
+                    folio_cotizacion=nuevo_folio, 
+                    
+                    subtotal_cotizacion=totales['subtotal'],
+                    iva_cotizacion=totales['iva'],
+                    retencion_isr_cotizacion=totales['retencion_isr'] if totales['retencion_isr'] else 0.00,
+                    total_cotizacion=totales['total'],
+                    aplica_isr_cotizacion=True if totales['aplicar_isr'] else False,
+                    clausulas_cotizacion=clausulas
+                )
+                db.session.add(nueva_cotizacion)
+                db.session.flush() # Hacemos un flush para que la BD le asigne un ID a 'nueva_cotizacion' sin cerrar la transacción
+                
+                # 4.2 Crear los registros de los Artículos (Items)
+                for art in articulos:
+                    # Validamos que el artículo no esté vacío
+                    if art['item'] or art['descripcion']:
+                        nuevo_item = CotizacionItem(
+                            id_cotizacion=nueva_cotizacion.id_cotizacion,
+                            # Asegúrate de que estos nombres coincidan con tu models.py
+                            sku_cotizacion_item=art['item'],
+                            descripcion_item_cotizacion=art['descripcion'],
+                            cantidad_item_cotizacion=art['cantidad'],
+                            costo_unitario_item_cotizacion=art['costo_unitario'],
+                            costo_final_item_cotizacion=art['costo_final']
+                        )
+                        db.session.add(nuevo_item)
+                
+                # 4.3 Guardar todo definitivamente
+                db.session.commit()
+                print(f"Cotización {cliente['numero_cotizacion']} guardada con éxito en BD.")
+                
+            except Exception as e:
+                db.session.rollback() # Si algo falla, deshacemos los cambios por seguridad
+                print(f"Error al guardar en BD: {e}")
+        # ---------------------------------------------------------
 
         # 5. Renderizar el HTML (Agregamos logo_base64 al render_template)
         html_renderizado = render_template('cotizacion_pdf.html', 
@@ -222,6 +318,159 @@ def generar_pdf():
         respuesta.headers['Content-Disposition'] = f'inline; filename={cliente["numero_cotizacion"]}.pdf'
         
         return respuesta
+
+@app.route('/ver_pdf/<int:id_cotizacion>')
+def ver_pdf(id_cotizacion):
+    # 1. Traer datos de la BD
+    cotizacion = Cotizacion.query.get_or_404(id_cotizacion)
+    items_db = CotizacionItem.query.filter_by(id_cotizacion=id_cotizacion).all()
+    
+    # Traemos las entidades relacionadas (Por ahora usando empresa 1)
+    empresa_db = Empresa.query.get(cotizacion.id_empresa)
+    cliente_db = Cliente.query.get(cotizacion.id_cliente)
+
+    # 2. Reconstruir los diccionarios exactos que espera tu plantilla de PDF
+    empresa_dict = {
+        'nombre_comercial': empresa_db.nombre_comercial_empresa,
+        'razon_social': empresa_db.razon_social_empresa,
+        'rfc': empresa_db.rfc_empresa,
+        'telefono': empresa_db.telefono1_empresa,
+        'correo': empresa_db.email_empresa
+    }
+
+    cliente_dict = {
+        'numero_cotizacion': cotizacion.folio_cotizacion,
+        'nombre': cliente_db.razon_social_cliente,
+        'atencion': cliente_db.nombre_contacto_cliente,
+        'rfc': cliente_db.rfc_cliente,
+        'correo': cliente_db.email_cliente,
+        'direccion': cliente_db.direccion_fiscal_cliente,
+        'telefono1': cliente_db.telefono1_cliente,
+        'entrega': cliente_db.direccion_entrega_cliente
+    }
+
+    articulos_list = []
+    for i, item in enumerate(items_db, 1):
+        articulos_list.append({
+            'no_item': i,
+            'item': item.sku_cotizacion_item, 
+            'descripcion': item.descripcion_item_cotizacion,
+            'costo_unitario': item.costo_unitario_item_cotizacion,
+            'cantidad': item.cantidad_item_cotizacion,
+            'costo_final': item.costo_final_item_cotizacion
+        })
+        # Eliminamos la línea "subtotal += ..." que sumaba manualmente
+
+    # Tomamos los valores directamente de tu modelo Cotizacion en la base de datos
+    totales_dict = {
+        'subtotal': cotizacion.subtotal_cotizacion,
+        'iva': cotizacion.iva_cotizacion,
+        'retencion_isr': cotizacion.retencion_isr_cotizacion,
+        'total': cotizacion.total_cotizacion,
+        'aplicar_isr': 'si' if cotizacion.aplica_isr_cotizacion else 'no'
+    }
+
+    # 3. Procesar HTML y PDF
+    html_procesado = render_template('cotizacion_pdf.html', 
+                                     empresa=empresa_dict, 
+                                     cliente=cliente_dict, 
+                                     articulos=articulos_list, 
+                                     totales=totales_dict,
+                                     clausulas=cotizacion.clausulas_cotizacion,
+                                     fecha_entrega=cotizacion.fecha_emision.strftime('%d/%m/%Y'))
+    
+    pdf_stream = BytesIO()
+    pisa.CreatePDF(BytesIO(html_procesado.encode('utf-8')), dest=pdf_stream)
+    pdf_stream.seek(0)
+
+    # 4. Devolverlo como vista "inline" (sin descargar)
+    response = make_response(pdf_stream.read())
+    response.headers['Content-Type'] = 'application/pdf'
+    # "inline" le dice al navegador que lo abra en la ventana, no que lo descargue
+    response.headers['Content-Disposition'] = f'inline; filename={cotizacion.folio_cotizacion}.pdf'
+    
+    return response
+
+@app.route('/cambiar_estatus/<int:id_cotizacion>/<estatus>')
+def cambiar_estatus(id_cotizacion, estatus):
+    # Validamos por seguridad que el estatus sea uno de los permitidos
+    estatus_validos = ['Abierta', 'En proceso', 'Declinada', 'Pagada']
+    
+    if estatus in estatus_validos:
+        cotizacion = Cotizacion.query.get_or_404(id_cotizacion)
+        cotizacion.estatus_cotizacion = estatus
+        db.session.commit()
+    
+    # Recargamos la página para que la cotización aparezca en su nueva pestaña
+    return redirect(url_for('gestionar_cotizaciones'))
+
+@app.route('/editar_cotizacion/<int:id_cotizacion>')
+def editar_cotizacion(id_cotizacion):
+    # 1. Buscamos la cotización y sus artículos en la base de datos
+    cotizacion = Cotizacion.query.get_or_404(id_cotizacion)
+    articulos = CotizacionItem.query.filter_by(id_cotizacion=id_cotizacion).all()
+    
+    # 2. Traemos la lista de clientes (necesaria para el <select> de la página)
+    clientes = Cliente.query.all()
+    empresas = Empresa.query.all()
+    
+    # 3. Renderizamos el MISMO formulario de creación, pero le enviamos los datos guardados
+    return render_template('cotizador.html', 
+                           clientes=clientes, 
+                           empresas=empresas,
+                           cotizacion_editar=cotizacion, 
+                           articulos_editar=articulos)
+
+@app.route('/actualizar_cotizacion/<int:id_cotizacion>', methods=['POST'])
+def actualizar_cotizacion(id_cotizacion):
+    try:
+        # 1. Traemos la cotización existente de la base de datos
+        cotizacion = Cotizacion.query.get_or_404(id_cotizacion)
+        
+        # 2. Actualizamos los datos principales (Cliente, Empresa, Cláusulas y Totales)
+        cotizacion.id_cliente = request.form.get('id_cliente')
+        cotizacion.id_empresa = request.form.get('id_empresa')
+        cotizacion.clausulas_cotizacion = request.form.get('clausulas')
+        
+        cotizacion.subtotal_cotizacion = request.form.get('subtotal')
+        cotizacion.iva_cotizacion = request.form.get('iva')
+        # Si no hay retención, aseguramos que guarde 0.00
+        cotizacion.retencion_isr_cotizacion = request.form.get('retencion_isr') or 0.00
+        cotizacion.total_cotizacion = request.form.get('total')
+        cotizacion.aplica_isr_cotizacion = True if request.form.get('aplicar_isr') else False
+
+        # 3. ELIMINAMOS los artículos anteriores de esta cotización
+        CotizacionItem.query.filter_by(id_cotizacion=id_cotizacion).delete()
+        
+        # 4. Recolectamos las listas de artículos que vienen del formulario editado
+        items = request.form.getlist('item')
+        descripciones = request.form.getlist('descripcion')
+        costos_unitarios = request.form.getlist('costo_unitario')
+        cantidades = request.form.getlist('cantidad')
+        costos_finales = request.form.getlist('costo_final')
+        
+        # 5. Insertamos los artículos como si fueran nuevos
+        for i in range(len(descripciones)):
+            if descripciones[i].strip() != "":  # Solo guardamos si la descripción no está vacía
+                nuevo_item = CotizacionItem(
+                    id_cotizacion=cotizacion.id_cotizacion,
+                    sku_cotizacion_item=items[i], 
+                    descripcion_item_cotizacion=descripciones[i],
+                    costo_unitario_item_cotizacion=costos_unitarios[i],
+                    cantidad_item_cotizacion=cantidades[i],
+                    costo_final_item_cotizacion=costos_finales[i]
+                )
+                db.session.add(nuevo_item)
+                
+        # 6. Guardamos todos los cambios (el UPDATE y los nuevos INSERTS)
+        db.session.commit()
+        
+        # 7. Redirigimos al visualizador de PDF para que se muestre en la pestaña nueva
+        return redirect(url_for('gestionar_cotizaciones'))
+        
+    except Exception as e:
+        db.session.rollback() # Si algo falla, deshacemos los cambios por seguridad
+        return f"Ocurrió un error al actualizar: {str(e)}"
 
 if __name__ == '__main__':
     app.run(debug=True)
