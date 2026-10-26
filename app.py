@@ -1,6 +1,6 @@
 import os
 import base64
-from flask import Flask, render_template, request, make_response, redirect, url_for
+from flask import Flask, render_template, request, make_response, redirect, url_for, request
 from xhtml2pdf import pisa
 from io import BytesIO
 
@@ -143,6 +143,59 @@ def gestionar_cotizaciones():
                            en_proceso=en_proceso, 
                            declinadas=declinadas,
                            pagadas=pagadas)
+
+@app.route('/historial_cotizaciones')
+def historial_cotizaciones():
+    # 1. Capturamos los filtros de la URL (si existen)
+    filtro_mes = request.args.get('mes', '')
+    filtro_anio = request.args.get('anio', '')
+
+    # 2. Traemos todas las cotizaciones
+    historial_completo = Cotizacion.query.order_by(Cotizacion.fecha_emision.desc()).all()
+
+    # 3. Extraemos los años disponibles para llenar el dropdown automáticamente
+    anios_disponibles = sorted(list(set(cot.fecha_emision.year for cot in historial_completo if cot.fecha_emision)), reverse=True)
+
+    # 4. Filtramos la lista según lo que el usuario haya seleccionado
+    historial_filtrado = []
+    for cot in historial_completo:
+        if cot.fecha_emision:
+            # Si hay filtro de año y no coincide, lo saltamos
+            if filtro_anio and str(cot.fecha_emision.year) != filtro_anio:
+                continue
+            # Si hay filtro de mes y no coincide, lo saltamos
+            if filtro_mes and str(cot.fecha_emision.month) != filtro_mes:
+                continue
+        historial_filtrado.append(cot)
+
+    # 5. Agrupamos solo lo que pasó el filtro
+    meses_es = {
+        1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril", 5: "Mayo", 6: "Junio",
+        7: "Julio", 8: "Agosto", 9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+    }
+
+    cotizaciones_por_mes = {}
+    for cot in historial_filtrado:
+        mes_año = f"{meses_es[cot.fecha_emision.month]} {cot.fecha_emision.year}" if cot.fecha_emision else "Sin Fecha"
+        if mes_año not in cotizaciones_por_mes:
+            cotizaciones_por_mes[mes_año] = []
+        cotizaciones_por_mes[mes_año].append(cot)
+
+    # 6. Los KPIs ahora calculan SOLO lo filtrado
+    kpis = {
+        'subtotal': f"{sum(cot.subtotal_cotizacion or 0 for cot in historial_filtrado):,.2f}",
+        'iva': f"{sum(cot.iva_cotizacion or 0 for cot in historial_filtrado):,.2f}",
+        'retencion': f"{sum(cot.retencion_isr_cotizacion or 0 for cot in historial_filtrado):,.2f}",
+        'total': f"{sum(cot.total_cotizacion or 0 for cot in historial_filtrado):,.2f}"
+    }
+
+    return render_template('historial_cotizaciones.html', 
+                           cotizaciones_por_mes=cotizaciones_por_mes,
+                           kpis=kpis,
+                           anios_disponibles=anios_disponibles,
+                           mes_actual=filtro_mes,
+                           anio_actual=filtro_anio)
+
 
 @app.route('/cotizador')
 def mostrar_cotizador():

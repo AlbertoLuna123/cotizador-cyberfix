@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold m-0 text-dark">Historial de Cotizaciones</h3>
+        <h3 class="fw-bold m-0 text-dark">Gestión de Cotizaciones</h3>
         <a href="/cotizador" class="btn btn-success fw-bold"><i class="bi bi-plus-lg me-1"></i> Nueva Cotización</a>
     </div>
     <!-- Buscador -->
@@ -64,7 +64,7 @@
                                 <td class="ps-4 text-primary fw-bold">{{ cot.folio_cotizacion }}</td>
                                 <td>{{ cot.fecha_emision.strftime('%d/%m/%Y') }}</td>
                                 <td>{{ cot.cliente_receptor.razon_social_cliente }}</td>
-                                <td class="fw-bold text-success">${{ cot.total_cotizacion }}</td>
+                                <td class="fw-bold text-success">${{ "{:,.2f}".format(cot.total_cotizacion or 0) }}</td>
                                 <td><span class="badge bg-primary">Abierta</span></td>
                                 <td class="text-end pe-4">
                                     <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="verPDF({{ cot.id_cotizacion }})">Ver PDF</button>

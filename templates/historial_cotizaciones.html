@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Historial de Cotizaciones{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold m-0 text-dark">Historial de Cotizaciones</h3>
+        <a href="/cotizador" class="btn btn-success fw-bold"><i class="bi bi-plus-lg me-1"></i> Nueva Cotización</a>
+    </div>
+    <!-- Formulario de Filtros de Fecha -->
+    <form method="GET" action="/historial_cotizaciones" class="row g-2 mb-4 align-items-end">
+        <!-- Filtro de Año -->
+        <div class="col-md-3">
+            <label class="form-label text-muted small fw-bold mb-1">Filtrar por Año</label>
+            <select name="anio" class="form-select text-secondary">
+                <option value="">Todos los años</option>
+                {% for anio in anios_disponibles %}
+                    <option value="{{ anio }}" {% if anio|string == anio_actual %}selected{% endif %}>{{ anio }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Filtro de Mes -->
+        <div class="col-md-3">
+            <label class="form-label text-muted small fw-bold mb-1">Filtrar por Mes</label>
+            <select name="mes" class="form-select text-secondary">
+                <option value="">Todos los meses</option>
+                <option value="1" {% if mes_actual == '1' %}selected{% endif %}>Enero</option>
+                <option value="2" {% if mes_actual == '2' %}selected{% endif %}>Febrero</option>
+                <option value="3" {% if mes_actual == '3' %}selected{% endif %}>Marzo</option>
+                <option value="4" {% if mes_actual == '4' %}selected{% endif %}>Abril</option>
+                <option value="5" {% if mes_actual == '5' %}selected{% endif %}>Mayo</option>
+                <option value="6" {% if mes_actual == '6' %}selected{% endif %}>Junio</option>
+                <option value="7" {% if mes_actual == '7' %}selected{% endif %}>Julio</option>
+                <option value="8" {% if mes_actual == '8' %}selected{% endif %}>Agosto</option>
+                <option value="9" {% if mes_actual == '9' %}selected{% endif %}>Septiembre</option>
+                <option value="10" {% if mes_actual == '10' %}selected{% endif %}>Octubre</option>
+                <option value="11" {% if mes_actual == '11' %}selected{% endif %}>Noviembre</option>
+                <option value="12" {% if mes_actual == '12' %}selected{% endif %}>Diciembre</option>
+            </select>
+        </div>
+        
+        <!-- Botones de Acción -->
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Filtrar</button>
+        </div>
+        <div class="col-md-2">
+            <a href="/historial_cotizaciones" class="btn btn-outline-secondary w-100">Limpiar</a>
+        </div>
+    </form> 
+
+    <!-- Contenido de las Pestañas -->
+    <div class="tab-content" id="cotizacionesTabContent">  
+        <!-- PESTAÑA 1: ABIERTAS -->
+        <div class="tab-pane fade show active" id="abiertas" role="tabpanel" tabindex="0">
+            <div class="card shadow-sm border-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-primary">
+                            <tr>
+                                <th class="ps-4">Folio</th>
+                                <th>Fecha de Emisión</th>
+                                <th>Cliente</th>
+                                <th>Monto Total</th>
+                                <th>Estatus</th>
+                                <th class="text-end pe-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Hacemos un ciclo por cada mes en el diccionario -->
+                            {% for mes, cotizaciones in cotizaciones_por_mes.items() %}
+                            
+                                <!-- Fila separadora del mes -->
+                                <tr class="table-secondary">
+                                    <!-- El colspan="6" debe coincidir con el número total de tus columnas -->
+                                    <td colspan="6" class="fw-bold text-center text-uppercase text-muted fs-6 py-2">
+                                        <i class="bi bi-calendar-month me-2"></i> {{ mes }}
+                                    </td>
+                                </tr>
+
+                                <!-- Hacemos el ciclo para imprimir las cotizaciones que pertenecen a este mes -->
+                                {% for cot in cotizaciones %}
+                                <tr>
+                                    <td class="text-primary fw-bold">{{ cot.folio_cotizacion }}</td>
+                                    <!-- Asegúrate de tener el formato de tu fecha (ej. cot.fecha_emision.strftime('%d/%m/%Y')) si la cambiaste -->
+                                    <td>{{ cot.fecha_emision.strftime('%d/%m/%Y') if cot.fecha_emision else '' }}</td>
+                                    <td>{{ cot.cliente_receptor.razon_social_cliente }}</td>
+                                    <td class="fw-bold text-success">${{ "{:,.2f}".format(cot.total_cotizacion or 0) }}</td>
+                                    <td><span class="badge bg-primary">{{ cot.estatus_cotizacion }}</span></td>
+                                    <td class="text-end">
+                                        <a href="/ver_pdf/{{ cot.id_cotizacion }}" target="_blank" class="btn btn-outline-primary btn-sm me-1">Ver PDF</a>
+                                        <a href="/editar_cotizacion/{{ cot.id_cotizacion }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil-square"></i> Editar</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Sección de KPIs (Totales Acumulados) -->
+                <div class="row mt-5 mb-4">
+                    <!-- KPI Subtotal -->
+                    <div class="col-md-3">
+                        <div class="card shadow-sm border-0 border-start border-secondary border-4">
+                            <div class="card-body">
+                                <h6 class="text-muted fw-bold mb-1"><i class="bi bi-calculator me-1"></i>Suma Subtotales</h6>
+                                <h4 class="text-secondary mb-0">${{ kpis.subtotal }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- KPI IVA -->
+                    <div class="col-md-3">
+                        <div class="card shadow-sm border-0 border-start border-info border-4">
+                            <div class="card-body">
+                                <h6 class="text-muted fw-bold mb-1"><i class="bi bi-receipt me-1"></i>Suma IVA</h6>
+                                <h4 class="text-info mb-0">${{ kpis.iva }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- KPI Retención ISR -->
+                    <div class="col-md-3">
+                        <div class="card shadow-sm border-0 border-start border-danger border-4">
+                            <div class="card-body">
+                                <h6 class="text-muted fw-bold mb-1"><i class="bi bi-shield-exclamation me-1"></i>Suma Retención ISR</h6>
+                                <h4 class="text-danger mb-0">${{ kpis.retencion }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- KPI Total General -->
+                    <div class="col-md-3">
+                        <div class="card shadow-sm border-0 border-start border-success border-4">
+                            <div class="card-body">
+                                <h6 class="text-muted fw-bold mb-1"><i class="bi bi-cash-coin me-1"></i>Monto Total General</h6>
+                                <h4 class="text-success fw-bold mb-0">${{ kpis.total }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Visualizar PDF -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white py-2">
+                    <h5 class="modal-title fs-6"><i class="bi bi-file-earmark-pdf me-2"></i>Visualizador de Cotización</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0" style="height: 80vh;">
+                    <iframe id="pdfFrame" src="" width="100%" height="100%" style="border: none;"></iframe>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+<!-- Script para inyectar la URL del PDF y configurar los botones -->
+    <script>
+        function verPDF(idCotizacion) {
+            // 1. Cargamos el PDF en el iframe
+            const iframe = document.getElementById('pdfFrame');
+            iframe.src = `/ver_pdf/${idCotizacion}`;
+            
+            // 3. Mostramos el modal
+            const myModal = new bootstrap.Modal(document.getElementById('pdfModal'));
+            myModal.show();
+        }
+    </script>
+    <!-- Script del Buscador en tiempo real -->
+    <script>
+        document.getElementById('buscadorCotizaciones').addEventListener('keyup', function() {
+            // Obtenemos lo que el usuario escribió y lo pasamos a minúsculas
+            let textoBusqueda = this.value.toLowerCase();
+            
+            // Seleccionamos todos los renglones (tr) de todas las tablas dentro de las pestañas
+            let renglones = document.querySelectorAll('.tab-content tbody tr');
+
+            renglones.forEach(function(renglon) {
+                // Si el renglón es el mensaje de "No hay cotizaciones", lo ignoramos
+                if (renglon.cells.length < 5) return;
+
+                // Extraemos el texto de la columna Folio (índice 0) y Cliente (índice 2)
+                let folio = renglon.cells[0].textContent.toLowerCase();
+                let cliente = renglon.cells[2].textContent.toLowerCase();
+
+                // Si el folio o el cliente contienen el texto buscado, mostramos el renglón. Si no, lo ocultamos.
+                if (folio.includes(textoBusqueda) || cliente.includes(textoBusqueda)) {
+                    renglon.style.display = '';
+                } else {
+                    renglon.style.display = 'none';
+                }
+            });
+        });
+    </script>
+{% endblock %}

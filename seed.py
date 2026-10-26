@@ -1,5 +1,7 @@
 from app import app
-from models import db, User, Empresa, Cliente
+# Asegúrate de agregar 'Cotizacion' a tus importaciones
+from models import db, User, Empresa, Cliente, Cotizacion 
+from datetime import datetime # Importamos datetime para manipular las fechas
 
 def inyectar_datos():
     with app.app_context():
@@ -19,14 +21,15 @@ def inyectar_datos():
             id_user=usuario.id_user,
             nombre_comercial_empresa="CyberFix Monterrey",
             razon_social_empresa="Mario Luna Lara",
-            rfc_empresa="LULM980716AZ5", # RFC de prueba
+            rfc_empresa="LULM980716AZ5",
             cp_empresa="66475",
             telefono1_empresa="8111275499",
             email_empresa="mario.luna@cyberfix.sbs"
         )
         db.session.add(empresa)
+        db.session.commit() # Guardamos para generar el ID de empresa
 
-        # 3. Crear un par de clientes de prueba vinculados al usuario
+        # 3. Crear clientes de prueba
         cliente1 = Cliente(
             id_user=usuario.id_user,
             razon_social_cliente="Alejandro Adrian Luna Valdez",
@@ -47,8 +50,41 @@ def inyectar_datos():
             direccion_fiscal_cliente="Monterrey, Nuevo León"
         )
         db.session.add(cliente2)
+        db.session.commit() # Guardamos para generar los IDs de los clientes
 
-        # Confirmamos todos los cambios en la base de datos
+        # 4. CREAR COTIZACIONES DE PRUEBA (OCTUBRE Y NOVIEMBRE)
+        
+        # Cotización de Octubre
+        cotizacion_oct = Cotizacion(
+            id_user=usuario.id_user,
+            id_empresa=empresa.id_empresa,
+            id_cliente=cliente1.id_cliente,
+            folio_cotizacion="CY-AL-0008",
+            fecha_emision=datetime(2026, 10, 15), # Fecha forzada a Octubre
+            estatus_cotizacion="Abierta",
+            subtotal_cotizacion=5000.00,
+            iva_cotizacion=800.00,
+            retencion_isr_cotizacion=0.00,
+            total_cotizacion=5800.00
+        )
+        db.session.add(cotizacion_oct)
+
+        # Cotización de Noviembre
+        cotizacion_nov = Cotizacion(
+            id_user=usuario.id_user,
+            id_empresa=empresa.id_empresa,
+            id_cliente=cliente2.id_cliente,
+            folio_cotizacion="CY-ES-0009",
+            fecha_emision=datetime(2026, 11, 5), # Fecha forzada a Noviembre
+            estatus_cotizacion="En Proceso",
+            subtotal_cotizacion=8000.00,
+            iva_cotizacion=1280.00,
+            retencion_isr_cotizacion=0.00,
+            total_cotizacion=9280.00
+        )
+        db.session.add(cotizacion_nov)
+
+        # Confirmamos todos los cambios finales
         db.session.commit()
         print("¡Datos de prueba inyectados correctamente!")
 
