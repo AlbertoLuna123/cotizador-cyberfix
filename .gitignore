@@ -2,3 +2,4 @@ cotizador/
 __pycache__/
 *.db
 instance/
+firebase-key.json

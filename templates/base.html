@@ -94,7 +94,13 @@
                     <div class="dropdown pb-4 w-100">
                         <a href="#" class="d-flex align-items-center text-white text-decoration-none px-3" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle fs-3 text-secondary"></i>
-                            <span class="d-none d-sm-inline mx-2">Usuario</span>
+                            <span class="d-none d-sm-inline mx-2">{{ current_user.nombre_user }} {{ current_user.apellidos_user }}</span>
+                        </a>
+                    </div>
+                    <!-- Botón de Logout -->
+                    <div class="px-2 mb-3">
+                        <a href="/logout" class="nav-link align-middle px-3 text-danger">
+                            <i class="fs-5 bi-box-arrow-left"></i> <span class="ms-1 d-none d-sm-inline">Cerrar sesión</span>
                         </a>
                     </div>
                 </div>

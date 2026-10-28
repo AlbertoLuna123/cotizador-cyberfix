@@ -1,15 +1,16 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from flask_login import UserMixin
 
 # Instanciamos la base de datos
 db = SQLAlchemy()
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'user'
     
     id_user = db.Column(db.Integer, primary_key=True)
-    uid_auth = db.Column(db.String(128), unique=True, nullable=True) # Se llenará con Firebase
-    nombre_user = db.Column(db.String(100), nullable=False)
+    uid_auth = db.Column(db.String(128), unique=True, nullable=False) # ID de Firebase
+    nombre_user = db.Column(db.String(50), nullable=False)
     apellidos_user = db.Column(db.String(100), nullable=False)
     email_user = db.Column(db.String(150), unique=True, nullable=False)
     telefono_user = db.Column(db.String(20)) # Corregido de te_user
@@ -19,6 +20,9 @@ class User(db.Model):
     empresas = db.relationship('Empresa', backref='propietario', lazy=True)
     clientes = db.relationship('Cliente', backref='propietario', lazy=True)
     cotizaciones = db.relationship('Cotizacion', backref='creador', lazy=True)
+
+    def get_id(self):
+            return str(self.id_user)
 
 class Empresa(db.Model):
     __tablename__ = 'empresa'
