@@ -139,35 +139,46 @@
                 <td style="width: 30%; text-align: right; vertical-align: top;">
                     <h2 style="color: #6c757d; margin:0; font-size: 18px;">COTIZACIÓN</h2>
                     <h3 style="margin:5px 0 0 0; color: #333;">{{ cliente.numero_cotizacion }}</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #555;">Emisión: {{ fecha_emision }}</p>
                 </td>
             </tr>
         </table>
     </div>
 
     <!-- Datos del Cliente -->
-    <table class="info-section">
+    <table style="width: 100%; margin-bottom: 20px; border-collapse: separate;">
         <tr>
-            <td style="padding-right: 10px;">
-                <div class="box">
-                    <h3>Preparado para:</h3>
-                    <strong>{{ cliente.nombre }}</strong><br>
-                    {% if cliente.atencion %}<strong>Atención a:</strong> {{ cliente.atencion }}<br>{% endif %}
-                    {% if cliente.rfc %}<strong>RFC:</strong> {{ cliente.rfc }}<br>{% endif %}
-                    {% if cliente.direccion %}<strong>Dirección:</strong> {{ cliente.direccion }}<br>{% endif %}
-                    {% if cliente.correo %}<strong>Email:</strong> {{ cliente.correo }}<br>{% endif %}
-                    {% if cliente.telefono1 %}<strong>Teléfono:</strong> {{ cliente.telefono1 }}{% endif %}
-                </div>
+            <!-- Caja Izquierda -->
+            <td style="width: 48%; background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 10px; vertical-align: top;">
+                <!-- Título como encabezado -->
+                {% if cliente.nombre_empresa %}
+                    <h3 style="margin-top: 0; color: #004085; font-size: 14px; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">En atención a: {{ cliente.nombre_empresa }}</h3>
+                {% else %}
+                    <h3 style="margin-top: 0; color: #004085; font-size: 14px; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Preparado para:</h3>
+                {% endif %}
+                
+                <strong>{{ cliente.nombre }}</strong><br>
+                {% if cliente.atencion %}<strong>Atención a:</strong> {{ cliente.atencion }}<br>{% endif %}
+                {% if cliente.rfc %}<strong>RFC:</strong> {{ cliente.rfc }}<br>{% endif %}
+                {% if cliente.direccion %}<strong>Dirección:</strong> {{ cliente.direccion }}<br>{% endif %}
+                {% if cliente.correo %}<strong>Email:</strong> {{ cliente.correo }}<br>{% endif %}
+                {% if cliente.telefono1 %}<strong>Teléfono:</strong> {{ cliente.telefono1 }}{% endif %}
             </td>
-            <td style="padding-left: 10px;">
-                <div class="box">
-                    <h3>Detalles del Servicio:</h3>
-                    {% if cliente.entrega %}<strong>Lugar de entrega/servicio:</strong> {{ cliente.entrega }}<br>{% endif %}
-                    <strong>Fecha:</strong> <!-- Aquí después podemos agregar la fecha del día automáticamente -->
-                </div>
+            
+            <!-- Espaciador central invisible para separar las cajas -->
+            <td style="width: 4%; border: none; background-color: transparent;"></td>
+            
+            <!-- Caja Derecha -->
+            <td style="width: 48%; background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 10px; vertical-align: top;">
+                <h3 style="margin-top: 0; color: #004085; font-size: 14px; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Detalles del Servicio:</h3>
+                {% if cliente.entrega %}<strong>Lugar de entrega/servicio:</strong> {{ cliente.entrega }}<br>{% endif %}
+                <strong>Fecha de entrega:</strong> {{ fecha_entrega }}
             </td>
         </tr>
     </table>
-
+    <div style="text-align: right; margin-bottom: 8px; font-size: 12px; color: #d9534f; font-weight: bold;">
+        Válida hasta: {{ fecha_vencimiento }}
+    </div>
     <!-- Tabla de Artículos -->
     <table class="table-items">
         <thead>

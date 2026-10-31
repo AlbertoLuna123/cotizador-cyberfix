@@ -12,7 +12,10 @@
                     <div class="card-body">
                         <!-- El formulario envía por POST a la misma ruta en la que está -->
                         <form action="/clientes/editar/{{ cliente.id_cliente }}" method="POST">
-                            
+                            <div class="mb-3">  
+                                <label class="form-label small">Nombre de la Empresa</label>
+                                <input type="text" class="form-control" name="nombre_empresa" value="{{ cliente.nombre_empresa_cliente or '' }}">
+                            </div>
                             <div class="mb-3">
                                 <label class="form-label small">Razón Social o Nombre*</label>
                                 <input type="text" class="form-control form-control-sm" name="razon_social" value="{{ cliente.razon_social_cliente or '' }}" required>
@@ -41,7 +44,16 @@
                                     <input type="text" class="form-control form-control-sm" name="cp" value="{{ cliente.cp_cliente or '' }}">
                                 </div>
                             </div>
-                            
+                            <div class="row"> 
+                                <div class="col-md-6 mb-3">
+                                    <label>Régimen Fiscal</label>
+                                    <input type="text" class="form-control" name="regimen_fiscal" value="{{ cliente.regimen_fiscal_cliente or '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Uso de CFDI</label>
+                                    <input type="text" class="form-control" name="uso_cfdi" value="{{ cliente.uso_cfdi_cliente or '' }}">
+                                </div>
+                            </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label small">Teléfono 1</label>

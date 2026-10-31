@@ -3,3 +3,4 @@ __pycache__/
 *.db
 instance/
 firebase-key.json
+cotizador-db.session.sql

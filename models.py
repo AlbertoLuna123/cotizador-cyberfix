@@ -47,7 +47,8 @@ class Cliente(db.Model):
     
     id_cliente = db.Column(db.Integer, primary_key=True)
     id_user = db.Column(db.Integer, db.ForeignKey('user.id_user'), nullable=False)
-    
+
+    nombre_empresa_cliente = db.Column(db.String(150))
     razon_social_cliente = db.Column(db.String(150), nullable=False)
     es_sa_cliente = db.Column(db.Boolean, default=False)
     nombre_contacto_cliente = db.Column(db.String(100))
@@ -59,6 +60,8 @@ class Cliente(db.Model):
     telefono2_cliente = db.Column(db.String(20))
     direccion_entrega_cliente = db.Column(db.Text)
     fecha_registro_cliente = db.Column(db.DateTime, default=datetime.utcnow)
+    regimen_fiscal_cliente = db.Column(db.String(100))
+    uso_cfdi_cliente = db.Column(db.String(100))
     
     cotizaciones = db.relationship('Cotizacion', backref='cliente_receptor', lazy=True)
 
@@ -72,7 +75,6 @@ class Cotizacion(db.Model):
     
     folio_cotizacion = db.Column(db.String(50), nullable=False)
     estatus_cotizacion = db.Column(db.String(20), default='Abierta')
-    fecha_emision = db.Column(db.DateTime, default=datetime.utcnow)
     clausulas_cotizacion = db.Column(db.Text)
     aplica_isr_cotizacion = db.Column(db.Boolean, default=False)
     
@@ -80,7 +82,10 @@ class Cotizacion(db.Model):
     iva_cotizacion = db.Column(db.Numeric(10, 2), default=0.00)
     retencion_isr_cotizacion = db.Column(db.Numeric(10, 2), default=0.00)
     total_cotizacion = db.Column(db.Numeric(10, 2), default=0.00)
-    fecha_registro_cotizacion = db.Column(db.DateTime, default=datetime.utcnow)
+
+    fecha_emision = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    fecha_vencimiento = db.Column(db.Date, nullable=True)
+    fecha_entrega = db.Column(db.Date, nullable=True)
     
     # Relación de uno a muchos con los renglones (items)
     items = db.relationship('CotizacionItem', backref='cotizacion_padre', cascade="all, delete-orphan", lazy=True)

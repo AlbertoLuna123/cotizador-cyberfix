@@ -7,7 +7,8 @@ from models import db, User, Empresa, Cliente, Cotizacion, CotizacionItem
 import firebase_admin
 from firebase_admin import credentials, auth
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from datetime import timedelta
+from datetime import date, timedelta, datetime
+from sqlalchemy import func
 
 app = Flask(__name__)
 # Flask-Login requiere una clave secreta para encriptar las cookies de sesión
@@ -67,15 +68,8 @@ def index():
         return redirect(url_for('home'))
     return redirect(url_for('login'))
 
-@app.route('/home')
-@login_required
-def home():
-    # Esta es tu verdadera página de inicio privada
-    return render_template('index.html')
-
 @app.route('/login')
 def login():
-    # Renderizamos la página de inicio de sesión
     return render_template('login.html')
 
 @app.route('/api/login', methods=['POST'])
@@ -131,7 +125,7 @@ def api_login():
                     return jsonify({"status": "error", "message": "Ocurrió un error al crear tu cuenta. Intenta de nuevo."}), 500
 
         login_user(user)
-        return jsonify({"status": "success", "redirect": url_for('gestionar_cotizaciones')})
+        return jsonify({"status": "success", "redirect": url_for('home')})
         
     except Exception as e:
         # 1. Imprimimos el error real en tu terminal de VS Code con un ícono para verlo rápido
@@ -145,6 +139,35 @@ def logout():
     logout_user() # Borra la sesión en Flask
     return redirect(url_for('login'))
 
+@app.route('/home')
+@login_required
+def home():
+    # 1. Últimas 5 cotizaciones (Actividad Reciente)
+    cotizaciones_recientes = Cotizacion.query.filter_by(id_empresa=current_user.id_user)\
+        .order_by(Cotizacion.fecha_emision.desc()).limit(5).all()
+        
+    # 2. Clientes Habituales (Los 5 clientes con más cotizaciones)
+    clientes_top = db.session.query(
+        Cliente.razon_social_cliente, 
+        func.count(Cotizacion.id_cotizacion).label('total_cotizaciones')
+    ).join(Cotizacion).filter(Cotizacion.id_empresa == current_user.id_user)\
+     .group_by(Cliente.razon_social_cliente)\
+     .order_by(func.count(Cotizacion.id_cotizacion).desc()).limit(5).all()
+
+    hoy = date.today()
+    limite_dias = hoy + timedelta(days=7)
+    
+    cotizaciones_por_vencer = Cotizacion.query.filter(
+        Cotizacion.id_empresa == current_user.id_user,
+        Cotizacion.estatus_cotizacion.in_(['Abierta', 'En Proceso']),
+        Cotizacion.fecha_vencimiento >= hoy,
+        Cotizacion.fecha_vencimiento <= limite_dias
+    ).order_by(Cotizacion.fecha_vencimiento.asc()).limit(5).all()
+
+    return render_template('index.html', 
+                           recientes=cotizaciones_recientes, 
+                           clientes_top=clientes_top,
+                           por_vencer=cotizaciones_por_vencer)
 # --- RUTA PARA EMPRESAS ---
 @app.route('/empresas', methods=['GET', 'POST'])
 @login_required
@@ -195,10 +218,13 @@ def gestionar_clientes():
         es_sa_booleano = True if request.form.get('es_sa') == 'on' else False
         nuevo_cliente = Cliente(
             id_user=current_user.id_user,
+            nombre_empresa_cliente=request.form.get('nombre_empresa'),
             razon_social_cliente=request.form.get('razon_social'),
             es_sa_cliente=es_sa_booleano,
             nombre_contacto_cliente=request.form.get('contacto'),
             rfc_cliente=request.form.get('rfc'),
+            regimen_fiscal_cliente=request.form.get('regimen_fiscal'),
+            uso_cfdi_cliente=request.form.get('uso_cfdi'),
             cp_cliente=request.form.get('cp'),
             telefono1_cliente=request.form.get('telefono1'),
             telefono2_cliente=request.form.get('telefono2'),
@@ -220,10 +246,13 @@ def editar_cliente(id_cliente):
     cliente = Cliente.query.filter_by(id_cliente=id_cliente, id_user=current_user.id_user).first_or_404()
     
     if request.method == 'POST':
+        cliente.nombre_empresa_cliente = request.form.get('nombre_empresa')
         cliente.razon_social_cliente = request.form.get('razon_social')
         cliente.es_sa_cliente = True if request.form.get('es_sa') == 'on' else False
         cliente.nombre_contacto_cliente = request.form.get('contacto')
         cliente.rfc_cliente = request.form.get('rfc')
+        cliente.regimen_fiscal_cliente = request.form.get('regimen_fiscal')
+        cliente.uso_cfdi_cliente = request.form.get('uso_cfdi')
         cliente.cp_cliente = request.form.get('cp')
         cliente.telefono1_cliente = request.form.get('telefono1')
         cliente.telefono2_cliente = request.form.get('telefono2')
@@ -242,9 +271,17 @@ def gestionar_cotizaciones():
     abiertas = Cotizacion.query.filter_by(estatus_cotizacion='Abierta', id_user=current_user.id_user).order_by(Cotizacion.fecha_emision.desc()).all()
     en_proceso = Cotizacion.query.filter_by(estatus_cotizacion='En proceso', id_user=current_user.id_user).order_by(Cotizacion.fecha_emision.desc()).all()
     declinadas = Cotizacion.query.filter_by(estatus_cotizacion='Declinada', id_user=current_user.id_user).order_by(Cotizacion.fecha_emision.desc()).all()
+    autorizadas = Cotizacion.query.filter_by(estatus_cotizacion='Autorizada', id_user=current_user.id_user).order_by(Cotizacion.fecha_emision.desc()).all()
     pagadas = Cotizacion.query.filter_by(estatus_cotizacion='Pagada', id_user=current_user.id_user).order_by(Cotizacion.fecha_emision.desc()).all()
-    
-    return render_template('cotizaciones.html', abiertas=abiertas, en_proceso=en_proceso, declinadas=declinadas, pagadas=pagadas)
+
+    kpis_pagadas = {
+        'subtotal': f"{sum(cot.subtotal_cotizacion or 0 for cot in pagadas):,.2f}",
+        'iva': f"{sum(cot.iva_cotizacion or 0 for cot in pagadas):,.2f}",
+        'retencion': f"{sum(cot.retencion_isr_cotizacion or 0 for cot in pagadas):,.2f}",
+        'total': f"{sum(cot.total_cotizacion or 0 for cot in pagadas):,.2f}"
+    }
+
+    return render_template('cotizaciones.html', abiertas=abiertas, en_proceso=en_proceso, declinadas=declinadas, autorizadas=autorizadas, pagadas=pagadas, kpis_pagadas=kpis_pagadas)
 
 @app.route('/historial_cotizaciones')
 @login_required
@@ -278,16 +315,8 @@ def historial_cotizaciones():
             cotizaciones_por_mes[mes_año] = []
         cotizaciones_por_mes[mes_año].append(cot)
 
-    kpis = {
-        'subtotal': f"{sum(cot.subtotal_cotizacion or 0 for cot in historial_filtrado):,.2f}",
-        'iva': f"{sum(cot.iva_cotizacion or 0 for cot in historial_filtrado):,.2f}",
-        'retencion': f"{sum(cot.retencion_isr_cotizacion or 0 for cot in historial_filtrado):,.2f}",
-        'total': f"{sum(cot.total_cotizacion or 0 for cot in historial_filtrado):,.2f}"
-    }
-
     return render_template('historial_cotizaciones.html', 
                            cotizaciones_por_mes=cotizaciones_por_mes,
-                           kpis=kpis,
                            anios_disponibles=anios_disponibles,
                            mes_actual=filtro_mes,
                            anio_actual=filtro_anio)
@@ -322,6 +351,7 @@ def generar_pdf():
 
         cliente = {
             'numero_cotizacion': request.form.get('numero_cotizacion', 'COT-000'),
+            'nombre_empresa': request.form.get('nombre_empresa'),
             'nombre': request.form.get('cliente_nombre'),
             'atencion': request.form.get('cliente_atencion'),
             'rfc': request.form.get('cliente_rfc'),
@@ -357,7 +387,8 @@ def generar_pdf():
             'total': request.form.get('total')
         }
         clausulas = request.form.get('clausulas')
-
+        fecha_vencimiento_form = request.form.get('fecha_vencimiento')
+        fecha_entrega_form = request.form.get('fecha_entrega')
         cliente_id = request.form.get('id_cliente') 
         empresa_id = request.form.get('id_empresa') # <-- CAPTURAMOS LA EMPRESA REAL
         
@@ -386,7 +417,9 @@ def generar_pdf():
                     retencion_isr_cotizacion=totales['retencion_isr'] if totales['retencion_isr'] else 0.00,
                     total_cotizacion=totales['total'],
                     aplica_isr_cotizacion=True if totales['aplicar_isr'] else False,
-                    clausulas_cotizacion=clausulas
+                    clausulas_cotizacion=clausulas,
+                    fecha_vencimiento=(datetime.strptime(fecha_vencimiento_form, '%Y-%m-%d').date() if fecha_vencimiento_form else None),
+                    fecha_entrega=(datetime.strptime(fecha_entrega_form, '%Y-%m-%d').date() if fecha_entrega_form else None)
                 )
                 db.session.add(nueva_cotizacion)
                 db.session.flush() 
@@ -409,13 +442,20 @@ def generar_pdf():
                 db.session.rollback() 
                 print(f"Error al guardar en BD: {e}")
 
+        f_emision_str = date.today().strftime('%d/%m/%Y')
+        f_entrega_str = datetime.strptime(fecha_entrega_form, '%Y-%m-%d').strftime('%d/%m/%Y') if fecha_entrega_form else 'Por definir'
+        f_vencimiento_str = datetime.strptime(fecha_vencimiento_form, '%Y-%m-%d').strftime('%d/%m/%Y') if fecha_vencimiento_form else 'Por definir'
+
         html_renderizado = render_template('cotizacion_pdf.html', 
                                            empresa=empresa, 
                                            cliente=cliente, 
                                            articulos=articulos, 
                                            totales=totales, 
                                            clausulas=clausulas,
-                                           logo_base64=logo_base64)
+                                           logo_base64=logo_base64,
+                                           fecha_emision=f_emision_str,
+                                           fecha_entrega=f_entrega_str,
+                                           fecha_vencimiento=f_vencimiento_str)
 
         pdf_buffer = BytesIO()
         pisa_status = pisa.CreatePDF(html_renderizado, dest=pdf_buffer)
@@ -476,6 +516,9 @@ def ver_pdf(id_cotizacion):
         'total': cotizacion.total_cotizacion,
         'aplicar_isr': 'si' if cotizacion.aplica_isr_cotizacion else 'no'
     }
+    f_emision_str = cotizacion.fecha_emision.strftime('%d/%m/%Y') if cotizacion.fecha_emision else ''
+    f_entrega_str = cotizacion.fecha_entrega.strftime('%d/%m/%Y') if cotizacion.fecha_entrega else 'Por definir'
+    f_vencimiento_str = cotizacion.fecha_vencimiento.strftime('%d/%m/%Y') if cotizacion.fecha_vencimiento else 'Por definir'
 
     html_procesado = render_template('cotizacion_pdf.html', 
                                      empresa=empresa_dict, 
@@ -483,7 +526,9 @@ def ver_pdf(id_cotizacion):
                                      articulos=articulos_list, 
                                      totales=totales_dict,
                                      clausulas=cotizacion.clausulas_cotizacion,
-                                     fecha_entrega=cotizacion.fecha_emision.strftime('%d/%m/%Y'))
+                                     fecha_emision=f_emision_str,
+                                     fecha_entrega=f_entrega_str,
+                                     fecha_vencimiento=f_vencimiento_str)
     
     pdf_stream = BytesIO()
     pisa.CreatePDF(BytesIO(html_procesado.encode('utf-8')), dest=pdf_stream)
@@ -498,7 +543,7 @@ def ver_pdf(id_cotizacion):
 @app.route('/cambiar_estatus/<int:id_cotizacion>/<estatus>')
 @login_required
 def cambiar_estatus(id_cotizacion, estatus):
-    estatus_validos = ['Abierta', 'En proceso', 'Declinada', 'Pagada']
+    estatus_validos = ['Abierta', 'En proceso', 'Declinada', 'Autorizada', 'Pagada']
     
     if estatus in estatus_validos:
         # BLINDAJE
@@ -535,7 +580,16 @@ def actualizar_cotizacion(id_cotizacion):
         cotizacion.id_cliente = request.form.get('id_cliente')
         cotizacion.id_empresa = request.form.get('id_empresa')
         cotizacion.clausulas_cotizacion = request.form.get('clausulas')
-        
+        f_vencimiento = request.form.get('fecha_vencimiento')
+        if f_vencimiento:
+            cotizacion.fecha_vencimiento = datetime.strptime(f_vencimiento, '%Y-%m-%d').date()
+        else:
+            cotizacion.fecha_vencimiento = None
+        f_entrega = request.form.get('fecha_entrega')
+        if f_entrega:
+            cotizacion.fecha_entrega = datetime.strptime(f_entrega, '%Y-%m-%d').date()
+        else:
+            cotizacion.fecha_entrega = None
         cotizacion.subtotal_cotizacion = request.form.get('subtotal')
         cotizacion.iva_cotizacion = request.form.get('iva')
         cotizacion.retencion_isr_cotizacion = request.form.get('retencion_isr') or 0.00

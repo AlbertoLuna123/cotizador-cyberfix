@@ -9,142 +9,171 @@
             <div class="card-body">
                 <form id="formCotizacion" action="{% if cotizacion_editar %}/actualizar_cotizacion/{{ cotizacion_editar.id_cotizacion }}{% else %}/generar{% endif %}" method="POST" target="_blank" onsubmit="setTimeout(procesarExito, 500);">
                     
-                    <!-- Sección 1: Datos de la Empresa -->
-                    <h4 class="mb-3 text-primary border-bottom pb-2">1. Datos de la Empresa</h4>
-                        <div class="mb-3">
-                            <label class="form-label text-primary fw-bold">Cargar Empresa Guardada:</label>
-                            <select class="form-select border-primary" id="select_empresa" name="id_empresa" onchange="llenarEmpresa()">
-                                <option value="" disabled {% if not cotizacion_editar %}selected{% endif %}>-- Seleccionar Empresa --</option>
-                                {% for emp in empresas %}
-                                    <option value="{{ emp.id_empresa }}"
-                                        data-nombre="{{ emp.nombre_comercial_empresa or '' }}"
-                                        data-razon="{{ emp.razon_social_empresa or '' }}"
-                                        data-rfc="{{ emp.rfc_empresa or '' }}"
-                                        data-cp="{{ emp.cp_empresa or '' }}"
-                                        data-tel1="{{ emp.telefono1_empresa or '' }}"
-                                        data-tel2="{{ emp.telefono2_empresa or '' }}"
-                                        data-email="{{ emp.email_empresa or '' }}"
-                                        {% if cotizacion_editar and cotizacion_editar.id_empresa == emp.id_empresa %}selected{% endif %}>
-                                        {{ emp.nombre_comercial_empresa }}
+                    <div class="row">
+                        <!-- ==========================================
+                             COLUMNA IZQUIERDA: DATOS DEL EMISOR
+                        =========================================== -->
+                        <div class="col-lg-6 border-end pe-lg-4 mb-4">
+                            <h4 class="mb-3 text-primary border-bottom pb-2">1. Datos del Emisor</h4>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-primary fw-bold">Cargar Empresa Guardada:</label>
+                                <select class="form-select border-primary" id="select_empresa" name="id_empresa" onchange="llenarEmpresa()">
+                                    <option value="" disabled {% if not cotizacion_editar %}selected{% endif %}>-- Seleccionar Empresa --</option>
+                                    {% for emp in empresas %}
+                                        <option value="{{ emp.id_empresa }}"
+                                            data-nombre="{{ emp.nombre_comercial_empresa or '' }}"
+                                            data-razon="{{ emp.razon_social_empresa or '' }}"
+                                            data-rfc="{{ emp.rfc_empresa or '' }}"
+                                            data-cp="{{ emp.cp_empresa or '' }}"
+                                            data-tel1="{{ emp.telefono1_empresa or '' }}"
+                                            data-tel2="{{ emp.telefono2_empresa or '' }}"
+                                            data-email="{{ emp.email_empresa or '' }}"
+                                            {% if cotizacion_editar and cotizacion_editar.id_empresa == emp.id_empresa %}selected{% endif %}>
+                                            {{ emp.nombre_comercial_empresa }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="logotipo" class="form-label fw-bold">Logotipo (JPG, PNG)</label>
+                                <input type="file" class="form-control form-control-sm" id="logotipo" name="logotipo" accept="image/*">
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label">Nombre comercial</label>
+                                <input type="text" class="form-control" name="empresa_nombre_comercial" required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Razón social</label>
+                                <input type="text" class="form-control" name="empresa_razon_social">
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <label class="form-label">RFC</label>
+                                    <input type="text" class="form-control" name="empresa_rfc">
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label class="form-label">CP</label>
+                                    <input type="text" class="form-control" name="empresa_cp">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <label class="form-label">Teléfono 1</label>
+                                    <input type="tel" class="form-control" name="empresa_telefono">
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label class="form-label">Teléfono 2</label>
+                                    <input type="tel" class="form-control" name="empresa_telefono2">
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label">Correo electrónico</label>
+                                <input type="email" class="form-control" name="empresa_correo">
+                            </div>
+                        </div>
+
+                        <!-- ==========================================
+                             COLUMNA DERECHA: DATOS DEL CLIENTE
+                        =========================================== -->
+                        <div class="col-lg-6 ps-lg-4 mb-4">
+                            <h4 class="mb-3 text-primary border-bottom pb-2">2. Datos del Cliente</h4>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-primary fw-bold">Cargar Cliente Guardado:</label>
+                                <select class="form-select border-primary" id="select_cliente" name="id_cliente" onchange="llenarCliente()">
+                                    <option value="" disabled {% if not cotizacion_editar %}selected{% endif %}>-- Seleccionar Cliente --</option>
+                                    {% for cli in clientes %}
+                                    <option value="{{ cli.id_cliente }}"
+                                        data-nombre_empresa="{{ cli.nombre_empresa_cliente or '' }}"
+                                        data-atencion="{{ cli.nombre_contacto_cliente or '' }}"
+                                        data-nombre="{{ cli.razon_social_cliente or '' }}"
+                                        data-rfc="{{ cli.rfc_cliente or '' }}"
+                                        data-cp="{{ cli.cp_cliente or '' }}"
+                                        data-email="{{ cli.email_cliente or '' }}"
+                                        data-dir="{{ cli.direccion_fiscal_cliente or '' }}"
+                                        data-tel1="{{ cli.telefono1_cliente or '' }}"
+                                        data-tel2="{{ cli.telefono2_cliente or '' }}"
+                                        data-entrega="{{ cli.direccion_entrega_cliente or '' }}"
+                                        {% if cotizacion_editar and cotizacion_editar.id_cliente == cli.id_cliente %}selected{% endif %}>
+                                    {{ cli.razon_social_cliente }}
                                     </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <hr>
-                    <!-- Agregué el logotipo aquí porque lo mencionaste en tu idea original -->
-                    <div class="row mb-3">
-                        <div class="col-md-12 mb-3">
-                            <label for="logotipo" class="form-label fw-bold">Logotipo de la Empresa (JPG, PNG)</label>
-                            <input type="file" class="form-control" id="logotipo" name="logotipo" accept="image/*">
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fs-6 fw-bold text-dark">Empresa / Nombre Comercial</label>
+                                <input type="text" class="form-control fw-bold text-primary" name="nombre_empresa" placeholder="Ej. Plus Eventos" required>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label">Razón social</label>
+                                <input type="text" class="form-control" name="cliente_nombre" required>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <label class="form-label">RFC</label>
+                                    <input type="text" class="form-control" name="cliente_rfc">
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label class="form-label">En atención a:</label>
+                                    <input type="text" class="form-control" name="cliente_atencion" placeholder="Contacto">
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label">Correo electrónico</label>
+                                <input type="email" class="form-control" name="cliente_correo">
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label">Dirección fiscal</label>
+                                <input type="text" class="form-control" name="cliente_direccion">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <label class="form-label">Teléfono 1</label>
+                                    <input type="tel" class="form-control" name="cliente_telefono1">
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label class="form-label">Teléfono 2</label>
+                                    <input type="tel" class="form-control" name="cliente_telefono2">
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label">Lugar de entrega</label>
+                                <input type="text" class="form-control" name="cliente_direccion_entrega">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">Nombre comercial</label>
-                            <input type="text" class="form-control" name="empresa_nombre_comercial" required>
+                    <!-- ==========================================
+                         FILA COMPLETA: FECHAS DE SERVICIO
+                    =========================================== -->
+                    <h4 class="mb-3 text-primary border-bottom pb-2 mt-2">3. Fechas del Servicio</h4>
+                    <div class="row mb-5 bg-light p-3 rounded">
+                        <div class="col-md-6 mb-2 mb-md-0">
+                            <label class="form-label small text-danger fw-bold">Fecha de Vencimiento</label>
+                            <input type="date" class="form-control border-danger" name="fecha_vencimiento" {% if cotizacion_editar %}value="{{ cotizacion_editar.fecha_vencimiento }}"{% endif %} required>
                         </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">Razón social</label>
-                            <input type="text" class="form-control" name="empresa_razon_social">
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">RFC</label>
-                            <input type="text" class="form-control" name="empresa_rfc">
-                        </div>
-                    </div>
-                    <div class="row mb-4">
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">CP</label>
-                            <input type="text" class="form-control" name="empresa_cp">
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">Teléfono 1</label>
-                            <input type="tel" class="form-control" name="empresa_telefono">
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">Teléfono 2</label>
-                            <input type="tel" class="form-control" name="empresa_telefono2">
-                        </div>
-                    </div>
-                    <div class="row mb-4"> 
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label">Correo electrónico</label>
-                            <input type="email" class="form-control" name="empresa_correo">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Fecha de Entrega Estimada</label>
+                            <input type="date" class="form-control" name="fecha_entrega" {% if cotizacion_editar %}value="{{ cotizacion_editar.fecha_entrega }}"{% endif %}>
                         </div>
                     </div>
 
-                    <!-- Sección 2: Datos del Cliente -->
-                    <h4 class="mb-3 text-primary border-bottom pb-2">2. Datos del Cliente</h4>
-                    <div class="mb-3">
-                        <label class="form-label text-primary fw-bold">Cargar Cliente Guardado:</label>
-                        <select class="form-select border-primary" id="select_cliente" name="id_cliente" onchange="llenarCliente()">
-                            <option value="" disabled {% if not cotizacion_editar %}selected{% endif %}>-- Seleccionar Cliente --</option>
-                            {% for cli in clientes %}
-                            <option value="{{ cli.id_cliente }}"
-                                data-atencion="{{ cli.nombre_contacto_cliente or '' }}"
-                                data-nombre="{{ cli.razon_social_cliente or '' }}"
-                                data-rfc="{{ cli.rfc_cliente or '' }}"
-                                data-cp="{{ cli.cp_cliente or '' }}"
-                                data-email="{{ cli.email_cliente or '' }}"
-                                data-dir="{{ cli.direccion_fiscal_cliente or '' }}"
-                                data-tel1="{{ cli.telefono1_cliente or '' }}"
-                                data-tel2="{{ cli.telefono2_cliente or '' }}"
-                                data-entrega="{{ cli.direccion_entrega_cliente or '' }}"
-                                {% if cotizacion_editar and cotizacion_editar.id_cliente == cli.id_cliente %}selected{% endif %}>
-                            {{ cli.razon_social_cliente }}
-                        </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <hr>
-                    <div class="row mb-3">
-                        <!-- El número de cotización lo puse al principio de esta sección por visibilidad -->
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">Nombre o razón social</label>
-                            <input type="text" class="form-control" name="cliente_nombre" required>
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">En atención a:</label>
-                            <input type="text" class="form-control" name="cliente_atencion" placeholder="Nombre de contacto">
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">RFC</label>
-                            <input type="text" class="form-control" name="cliente_rfc">
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">Correo electrónico</label>
-                            <input type="email" class="form-control" name="cliente_correo">
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">Dirección fiscal</label>
-                            <input type="text" class="form-control" name="cliente_direccion">
-                        </div>
-                    </div>
-                    <div class="row mb-4">
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">Teléfono 1</label>
-                            <input type="tel" class="form-control" name="cliente_telefono1">
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">Teléfono 2</label>
-                            <input type="tel" class="form-control" name="cliente_telefono2">
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="form-label">Lugar de entrega</label>
-                            <input type="text" class="form-control" name="cliente_direccion_entrega">
-                        </div>
-                    </div>
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small">Fecha de Entrega Estimada</label>
-                            <input type="date" class="form-control form-control-sm" name="fecha_entrega">
-                        </div>
-                    </div>
-                    <!-- Sección 3: Artículos -->
-                    <h4 class="mb-3 text-primary border-bottom pb-2">3. Artículos a Cotizar</h4>
+                    <!-- Sección 4: Artículos -->
+                    <h4 class="mb-3 text-primary border-bottom pb-2">4. Artículos a Cotizar</h4>
+                    <!-- AQUÍ CONTINÚA TU TABLA DE ARTÍCULOS EXACTAMENTE IGUAL... -->
                     <div class="table-responsive mb-3">
                         <table class="table table-bordered align-middle text-center" id="tablaArticulos">
                             <thead class="table-light">
@@ -215,7 +244,7 @@
                             <button type="button" class="btn btn-outline-secondary" id="btnAgregarArticulo">+ Agregar otro artículo</button>
                             
                             <div class="form-check form-switch fs-5">
-                                <input class="form-check-input" type="checkbox" id="aplicarISR" name="aplicar_isr" value="si">
+                                <input class="form-check-input" type="checkbox" id="aplicarISR" name="aplicar_isr" value="si" {% if cotizacion_editar and cotizacion_editar.aplica_isr_cotizacion %}checked{% endif %}>
                                 <label class="form-check-label fw-bold" for="aplicarISR">Aplicar Retención de ISR (1.25%)</label>
                             </div>
                         </div>
@@ -336,6 +365,8 @@
                     actualizarNumeros();
                 }
             });
+
+            calcularTotales();
         });
 
         function llenarEmpresa() {
@@ -360,6 +391,9 @@
             var option = select.options[select.selectedIndex];
             
             if(option.value !== "") {
+                if(document.getElementsByName("nombre_empresa").length > 0) {
+                    document.getElementsByName("nombre_empresa")[0].value = option.getAttribute("data-nombre_empresa") || "";
+                }
                 document.getElementsByName("cliente_nombre")[0].value = option.getAttribute("data-nombre");
                 document.getElementsByName("cliente_rfc")[0].value = option.getAttribute("data-rfc");
                 document.getElementsByName("cliente_atencion")[0].value = option.getAttribute("data-atencion");

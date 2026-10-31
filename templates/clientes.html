@@ -11,11 +11,14 @@
                 <div class="card-header bg-success text-white fw-bold">Registrar Nuevo Cliente</div>
                 <div class="card-body">
                     <form action="/clientes" method="POST">
+                        <div class="mb-3">  
+                            <label class="form-label small">Nombre de la Empresa</label>
+                            <input type="text" class="form-control" name="nombre_empresa">
+                        </div>
                         <div class="mb-3">
                             <label class="form-label small">Razón Social o Nombre*</label>
                             <input type="text" class="form-control form-control-sm" name="razon_social" required>
                         </div>
-                        
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" name="es_sa" id="checkSA">
                             <label class="form-check-label small text-muted" for="checkSA">
@@ -35,6 +38,16 @@
                             <div class="col-md-4 mb-3">
                                 <label class="form-label small">C.P.</label>
                                 <input type="text" class="form-control form-control-sm" name="cp">
+                            </div>
+                        </div>
+                        <div class="row"> 
+                            <div class="col-md-6 mb-3">
+                                <label>Régimen Fiscal</label>
+                                <input type="text" class="form-control" name="regimen_fiscal">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Uso de CFDI</label>
+                                <input type="text" class="form-control" name="uso_cfdi">
                             </div>
                         </div>
                         <div class="row">

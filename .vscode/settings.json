@@ -1,0 +1,19 @@
+{
+    "sqltools.connections": [
+        {
+            "pgOptions": {
+                "ssl": {
+                    "rejectUnauthorized": false
+                }
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "postgresql://cotizador_db_e8yy_user:pDu2LYY9MD3C2wDwEt0OwvXz9Zf2cwA9@dpg-dbgp5349v7es73b28js0-a.oregon-postgres.render.com/cotizador_db_e8yy",
+            "driver": "PostgreSQL",
+            "name": "cotizador-db",
+            "database": "cotizador_db_e8yy",
+            "username": "cotizador_db_e8yy_user",
+            "connectString": "postgresql://cotizador_db_e8yy_user:pDu2LYY9MD3C2wDwEt0OwvXz9Zf2cwA9@dpg-dbgp5349v7es73b28js0-a.oregon-postgres.render.com/cotizador_db_e8yy"
+        }
+    ]
+}
